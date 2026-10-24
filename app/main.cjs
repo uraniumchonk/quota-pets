@@ -5,6 +5,19 @@ const fs = require('fs');
 const path = require('path');
 const { pathToFileURL, fileURLToPath } = require('url');
 const { WinBind } = require('./winbind.cjs');
+const STR = require('./i18n.json');
+
+// UI language: config "lang" = "zh-TW" | "en" | "auto" (follows the system locale)
+function langOf(c) {
+  const l = c && c.lang;
+  if (l && STR[l]) return l;
+  return /^zh/i.test(app.getLocale()) ? 'zh-TW' : 'en';
+}
+function t(key, vars) {
+  let s = (STR[langOf(cfg)] || STR.en)[key] ?? STR.en[key] ?? key;
+  for (const [k, v] of Object.entries(vars || {})) s = s.split('{' + k + '}').join(v);
+  return s;
+}
 
 const BUNDLED = path.join(__dirname, 'pets');
 let PETS;                       // user copy, editable: %APPDATA%/quota-pets/pets
@@ -47,7 +60,7 @@ function carryOver(bak) {
   const oldTop = readJson(path.join(bak, 'config.json'));
   const top = readJson(path.join(PETS, 'config.json'));
   for (const k of ['anchor', 'x', 'y', 'display', 'shiftY', 'gap', 'scale', 'zoom', 'locked']) if (oldTop.rail && k in oldTop.rail) top.rail[k] = oldTop.rail[k];
-  for (const k of ['bind', 'display', 'server']) {
+  for (const k of ['bind', 'display', 'server', 'lang']) {
     if (k === 'bind' && (oldTop.bundleVersion || 1) < 5) continue;   // v4 shipped an example binding
     if (k in oldTop) top[k] = oldTop[k];
   }
@@ -95,12 +108,14 @@ function loadConfig() {
     } catch (e) { console.error('character', id, e.message); }
   }
   c.version = Date.now();     // cache-buster so replaced images reload
+  c.langResolved = langOf(c);
+  c.strings = STR[c.langResolved];
   return c;
 }
 
 function saveConfig(next) {
   suppressWatchUntil = Date.now() + 1500;
-  const { chars, version, ...top } = next;
+  const { chars, version, langResolved, strings, ...top } = next;
   fs.writeFileSync(path.join(PETS, 'config.json'), JSON.stringify(top, null, 2) + '\n');
   for (const ch of chars) {
     const { id, base, ...rest } = ch;
@@ -248,8 +263,8 @@ function saveBind(change) {
 }
 
 function ruleLabel(r) {
-  if (r.hwnd) return `${r.process || '視窗'}「${String(r.title || '').slice(0, 30)}」`;
-  return [r.process && `${r.process}（全部視窗）`, r.title && `標題含「${r.title}」`].filter(Boolean).join(' ');
+  if (r.hwnd) return `${r.process || t('bind.window')} "${String(r.title || '').slice(0, 30)}"`;
+  return [r.process && t('bind.allWindows', { p: r.process }), r.title && t('bind.titleHas', { x: r.title })].filter(Boolean).join(' ');
 }
 
 // Bind or unbind one window (by handle). Used by the hotkey and the menu.
@@ -261,36 +276,36 @@ function toggleWindow(w) {
     if (i >= 0) x.match.splice(i, 1);
     else { x.match.push({ hwnd: w.hwnd, process: w.proc, title: w.title }); x.enabled = true; bound = true; }
   });
-  send('toast', `${bound ? '已綁定' : '已解除'}：${w.proc || ''} ${String(w.title || '').slice(0, 24)}`);
+  send('toast', t(bound ? 'bind.bound' : 'bind.unbound', { x: `${w.proc || ''} ${String(w.title || '').slice(0, 24)}` }));
 }
 
 function bindMenu() {
   const b = Object.assign({ enabled: false, mode: 'foreground', match: [] }, cfg.bind);
   const hot = b.hotkey || 'Ctrl+Alt+B';
   const items = [
-    { label: '只在綁定的視窗出現', type: 'checkbox', checked: !!b.enabled, click: m => saveBind(x => { x.enabled = m.checked; }) },
-    { label: '切到綁定的視窗時出現', type: 'radio', checked: b.mode !== 'open', click: () => saveBind(x => { x.mode = 'foreground'; }) },
-    { label: '綁定的視窗有開著就出現', type: 'radio', checked: b.mode === 'open', click: () => saveBind(x => { x.mode = 'open'; }) },
-    { label: `快捷鍵 ${hot}：綁定／解除目前的視窗`, enabled: false },
+    { label: t('bind.only'), type: 'checkbox', checked: !!b.enabled, click: m => saveBind(x => { x.enabled = m.checked; }) },
+    { label: t('bind.modeFg'), type: 'radio', checked: b.mode !== 'open', click: () => saveBind(x => { x.mode = 'foreground'; }) },
+    { label: t('bind.modeOpen'), type: 'radio', checked: b.mode === 'open', click: () => saveBind(x => { x.mode = 'open'; }) },
+    { label: t('bind.hotkey', { key: hot }), enabled: false },
     { type: 'separator' },
   ];
   if (b.match.length) {
     b.match.forEach((r, i) => items.push({
-      label: `移除：${ruleLabel(r)}${binder.isOpen(r) ? '' : '（已關閉）'}`,
+      label: t('bind.remove', { x: ruleLabel(r) }) + (binder.isOpen(r) ? '' : t('bind.closed')),
       click: () => saveBind(x => { x.match.splice(i, 1); }),
     }));
     if (b.match.some(r => !binder.isOpen(r)) && process.platform === 'win32')
-      items.push({ label: '清掉已關閉的視窗', click: () => saveBind(x => { x.match = x.match.filter(r => !r.hwnd || binder.isOpen(r)); }) });
-  } else items.push({ label: '（還沒有綁定）', enabled: false });
+      items.push({ label: t('bind.clearClosed'), click: () => saveBind(x => { x.match = x.match.filter(r => !r.hwnd || binder.isOpen(r)); }) });
+  } else items.push({ label: t('bind.none'), enabled: false });
 
   const wins = binder.windows(), progs = binder.programs();
-  const none = [{ label: process.platform === 'win32' ? '（讀取中，稍後再開一次）' : '（只支援 Windows）', enabled: false }];
+  const none = [{ label: t(process.platform === 'win32' ? 'bind.loading' : 'bind.winOnly'), enabled: false }];
   items.push({ type: 'separator' },
-    { label: '綁定單一視窗', submenu: wins.length ? wins.map(w => ({
+    { label: t('bind.single'), submenu: wins.length ? wins.map(w => ({
         label: `${w.proc} — ${String(w.title).slice(0, 50)}`, type: 'checkbox',
         checked: b.match.some(r => r.hwnd && Number(r.hwnd) === Number(w.hwnd)),
         click: () => toggleWindow(w) })) : none },
-    { label: '綁定整個程式（它的所有視窗）', submenu: progs.length ? progs.map(p => ({
+    { label: t('bind.program'), submenu: progs.length ? progs.map(p => ({
         label: p, type: 'checkbox',
         checked: b.match.some(r => !r.hwnd && r.process && r.process.toLowerCase() === p.toLowerCase()),
         click: m => saveBind(x => {
@@ -313,22 +328,24 @@ function registerHotkey() {
 // ---------- menus ----------
 function menu() {
   return Menu.buildFromTemplate([
-    { label: editing ? '結束調整（不存）' : '調整位置…', click: () => setEditing(!editing) },
-    { label: '鎖定位置', type: 'checkbox', checked: !!cfg.rail.locked, click: (m) => { cfg.rail.locked = m.checked; saveConfig(cfg); send('config', cfg); } },
-    { label: '大小', submenu: [50, 60, 70, 80, 90, 100, 120, 150].map(p => ({ label: p + '%', type: 'radio',
+    { label: t(editing ? 'menu.endAdjust' : 'menu.adjust'), click: () => setEditing(!editing) },
+    { label: t('menu.lock'), type: 'checkbox', checked: !!cfg.rail.locked, click: (m) => { cfg.rail.locked = m.checked; saveConfig(cfg); send('config', cfg); } },
+    { label: t('menu.size'), submenu: [50, 60, 70, 80, 90, 100, 120, 150].map(p => ({ label: p + '%', type: 'radio',
         checked: Math.round((cfg.rail.zoom || 1) * 100) === p, click: () => send('zoom', p / 100) })) },
-    { label: '綁定視窗', submenu: bindMenu() },
+    { label: t('menu.bind'), submenu: bindMenu() },
+    { label: t('menu.lang'), submenu: [['auto', t('menu.langAuto')], ['zh-TW', '繁體中文'], ['en', 'English']].map(([v, l]) => ({
+        label: l, type: 'radio', checked: (cfg.lang || 'auto') === v, click: () => { cfg.lang = v; saveConfig(cfg); tray.setToolTip(t('app.title')); send('config', cfg); } })) },
     { type: 'separator' },
-    { label: '立即刷新額度', click: async () => {
+    { label: t('menu.refresh'), click: async () => {
         if (!isDemo()) try { await fetch(cfg.server + '/api/refresh', { method: 'POST' }); } catch {}
         setTimeout(pollQuota, 1500); pollAgents(); } },
-    { label: '重新載入角色', click: reload },
-    { label: '開啟角色資料夾', click: () => shell.openPath(PETS) },
+    { label: t('menu.reload'), click: reload },
+    { label: t('menu.folder'), click: () => shell.openPath(PETS) },
     { type: 'separator' },
-    { label: '開機自動啟動', type: 'checkbox', checked: app.getLoginItemSettings().openAtLogin,
+    { label: t('menu.login'), type: 'checkbox', checked: app.getLoginItemSettings().openAtLogin,
       click: (m) => app.setLoginItemSettings({ openAtLogin: m.checked }) },
-    { label: '開發者工具', click: () => win.webContents.openDevTools({ mode: 'detach' }) },
-    { label: '結束', click: () => app.quit() },
+    { label: t('menu.devtools'), click: () => win.webContents.openDevTools({ mode: 'detach' }) },
+    { label: t('menu.quit'), click: () => app.quit() },
   ]);
 }
 function setEditing(on) {
@@ -359,7 +376,7 @@ app.whenReady().then(() => {
 
   const icon = nativeImage.createFromPath(path.join(__dirname, 'icon.png'));
   tray = new Tray(icon.isEmpty() ? nativeImage.createEmpty() : icon.resize({ width: 16, height: 16 }));
-  tray.setToolTip('額度小人');
+  tray.setToolTip(t('app.title'));
   tray.on('click', () => tray.popUpContextMenu(menu()));
   tray.on('right-click', () => tray.popUpContextMenu(menu()));
 

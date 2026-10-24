@@ -1,5 +1,8 @@
 {
-  "name": "Claude（橘髮）",
+  "name": {
+    "zh-TW": "Claude（橘髮）",
+    "en": "Claude (orange hair)"
+  },
   "size": {
     "w": 1448,
     "h": 1086
@@ -10,22 +13,34 @@
     {
       "provider": "claude",
       "window": "5h",
-      "label": "主 5h"
+      "label": {
+        "zh-TW": "主 5h",
+        "en": "Main 5h"
+      }
     },
     {
       "provider": "claude",
       "window": "7d",
-      "label": "主 7d"
+      "label": {
+        "zh-TW": "主 7d",
+        "en": "Main 7d"
+      }
     },
     {
       "provider": "claude2",
       "window": "5h",
-      "label": "副 5h"
+      "label": {
+        "zh-TW": "副 5h",
+        "en": "Alt 5h"
+      }
     },
     {
       "provider": "claude2",
       "window": "7d",
-      "label": "副 7d"
+      "label": {
+        "zh-TW": "副 7d",
+        "en": "Alt 7d"
+      }
     }
   ],
   "footer": "reset",
@@ -75,7 +90,10 @@
     },
     "offline": {
       "img": "normal.png",
-      "text": "連不到家裡的貓窩"
+      "text": {
+        "zh-TW": "連不到家裡的貓窩",
+        "en": "Can't reach the server"
+      }
     }
   },
   "rules": [
@@ -128,32 +146,70 @@
     "ms": 1500
   },
   "lines": {
-    "normal": [
-      "今天也一起開工吧",
-      "額度還很多喔",
-      "要喝水喔"
-    ],
-    "warning": [
-      "省著點用…",
-      "7 天的快見底了",
-      "粗活交給 coder？"
-    ],
-    "critical": [
-      "沒了 QQ",
-      "等重置嘛…",
-      "給我買重置卡！"
-    ],
-    "offline": [
-      "家裡連不上…"
-    ],
-    "working": [
-      "專心寫 code 中",
-      "這個我來"
-    ],
-    "idle": [
-      "（趴著休息）",
-      "叫我嗎？"
-    ]
+    "normal": {
+      "zh-TW": [
+        "今天也一起開工吧",
+        "額度還很多喔",
+        "要喝水喔"
+      ],
+      "en": [
+        "Let's get to work",
+        "Plenty of quota left",
+        "Drink some water"
+      ]
+    },
+    "warning": {
+      "zh-TW": [
+        "省著點用…",
+        "7 天的快見底了",
+        "粗活交給 coder？"
+      ],
+      "en": [
+        "Go easy…",
+        "The weekly one is running low",
+        "Hand the chores to a cheaper model?"
+      ]
+    },
+    "critical": {
+      "zh-TW": [
+        "沒了 QQ",
+        "等重置嘛…",
+        "給我買重置卡！"
+      ],
+      "en": [
+        "All gone QQ",
+        "Waiting for the reset…",
+        "Buy me a reset card!"
+      ]
+    },
+    "offline": {
+      "zh-TW": [
+        "家裡連不上…"
+      ],
+      "en": [
+        "Can't reach the server…"
+      ]
+    },
+    "working": {
+      "zh-TW": [
+        "專心寫 code 中",
+        "這個我來"
+      ],
+      "en": [
+        "Coding hard",
+        "I've got this"
+      ]
+    },
+    "idle": {
+      "zh-TW": [
+        "（趴著休息）",
+        "叫我嗎？"
+      ],
+      "en": [
+        "(resting)",
+        "Did you call me?"
+      ]
+    }
   },
   "offset": {
     "x": 0,

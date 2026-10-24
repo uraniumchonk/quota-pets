@@ -1,5 +1,8 @@
 {
-  "name": "Grok（哥德雙馬尾）",
+  "name": {
+    "zh-TW": "Grok（哥德雙馬尾）",
+    "en": "Grok (gothic twin tails)"
+  },
   "size": {
     "w": 1448,
     "h": 1086
@@ -10,7 +13,10 @@
     {
       "provider": "grok",
       "window": "7d",
-      "label": "週"
+      "label": {
+        "zh-TW": "週",
+        "en": "Week"
+      }
     }
   ],
   "footer": "reset",
@@ -60,7 +66,10 @@
     },
     "offline": {
       "img": "normal.png",
-      "text": "連不到家裡的貓窩"
+      "text": {
+        "zh-TW": "連不到家裡的貓窩",
+        "en": "Can't reach the server"
+      }
     }
   },
   "rules": [
@@ -113,27 +122,60 @@
     "ms": 1500
   },
   "lines": {
-    "normal": [
-      "有事找我",
-      "Grok 在這"
-    ],
-    "warning": [
-      "快用完囉"
-    ],
-    "critical": [
-      "用光光了",
-      "下週見"
-    ],
-    "offline": [
-      "連不上…"
-    ],
-    "working": [
-      "查資料中",
-      "忙著呢"
-    ],
-    "idle": [
-      "（撐著臉發呆）"
-    ]
+    "normal": {
+      "zh-TW": [
+        "有事找我",
+        "Grok 在這"
+      ],
+      "en": [
+        "Need something?",
+        "Grok's here"
+      ]
+    },
+    "warning": {
+      "zh-TW": [
+        "快用完囉"
+      ],
+      "en": [
+        "Almost used up"
+      ]
+    },
+    "critical": {
+      "zh-TW": [
+        "用光光了",
+        "下週見"
+      ],
+      "en": [
+        "All used up",
+        "See you next week"
+      ]
+    },
+    "offline": {
+      "zh-TW": [
+        "連不上…"
+      ],
+      "en": [
+        "Can't connect…"
+      ]
+    },
+    "working": {
+      "zh-TW": [
+        "查資料中",
+        "忙著呢"
+      ],
+      "en": [
+        "Looking things up",
+        "Busy right now"
+      ]
+    },
+    "idle": {
+      "zh-TW": [
+        "（撐著臉發呆）"
+      ],
+      "en": [
+        "(daydreaming)"
+      ]
+    }
   },
   "offset": {
     "x": 0,

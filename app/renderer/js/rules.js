@@ -43,6 +43,5 @@ QP.resolvePose = function (ch, name) {
     text: p.text || null,
     textBox: Object.assign({}, ch.textBox, p.textBox || {}),
     ownTextBox: !!p.textBox,
-    anim: p.anim || 'bob',
   };
 };

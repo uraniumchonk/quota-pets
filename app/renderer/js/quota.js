@@ -12,7 +12,20 @@ QP.severityOf = function (used, given, th) {
   return s;
 };
 
-QP.STATE_LABEL = { working: '工作中', idle: '閒置', sleeping: '睡著了', offline: '離線', unknown: '不明' };
+// UI strings come from app/i18n.json through cfg.strings (set by main for the chosen language).
+QP.strings = {};
+QP.lang = 'zh-TW';
+QP.t = function (key, vars) {
+  let s = QP.strings[key] ?? key;
+  for (const [k, v] of Object.entries(vars || {})) s = s.split('{' + k + '}').join(v);
+  return s;
+};
+// Character text may be a plain string or { "zh-TW": "...", "en": "..." }.
+QP.loc = function (v) {
+  if (v == null || typeof v !== 'object' || Array.isArray(v)) return v;
+  return v[QP.lang] ?? v['zh-TW'] ?? v.en ?? Object.values(v)[0];
+};
+QP.stateLabel = s => QP.t('state.' + s) === 'state.' + s ? s : QP.t('state.' + s);
 
 QP.buildContext = function (ch, data, cfg, now) {
   const th = cfg.thresholds || { warning: 75, critical: 90 };
@@ -23,7 +36,7 @@ QP.buildContext = function (ch, data, cfg, now) {
     const used = w ? w.used_pct : null;
     const left = used == null ? null : Math.max(0, Math.round(100 - used));
     return {
-      label: item.label || item.provider + ' ' + item.window,
+      label: QP.loc(item.label) || item.provider + ' ' + item.window,
       used, left,
       resetsAt: w && w.resets_at ? w.resets_at * 1000 : null,
       severity: w ? QP.severityOf(used, w.severity, th) : 'normal',
@@ -54,8 +67,8 @@ QP.buildContext = function (ch, data, cfg, now) {
 QP.fmtLeft = function (ms) {
   if (ms == null) return '';
   const m = Math.max(0, Math.round(ms / 60000));
-  if (m < 60) return m + ' 分';
+  if (m < 60) return QP.t('time.m', { m });
   const h = Math.floor(m / 60);
-  if (h < 48) return h + ' 小時 ' + (m % 60) + ' 分';
-  return Math.floor(h / 24) + ' 天 ' + (h % 24) + ' 小時';
+  if (h < 48) return QP.t('time.hm', { h, m: m % 60 });
+  return QP.t('time.dh', { d: Math.floor(h / 24), h: h % 24 });
 };

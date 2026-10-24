@@ -1,5 +1,8 @@
 {
-  "name": "GPT／Codex（白龍）",
+  "name": {
+    "zh-TW": "GPT／Codex（白龍）",
+    "en": "GPT / Codex (white dragon)"
+  },
   "size": {
     "w": 1448,
     "h": 1086
@@ -10,7 +13,10 @@
     {
       "provider": "codex",
       "window": "7d",
-      "label": "週"
+      "label": {
+        "zh-TW": "週",
+        "en": "Week"
+      }
     }
   ],
   "footer": "reset",
@@ -60,7 +66,10 @@
     },
     "offline": {
       "img": "normal.png",
-      "text": "連不到家裡的貓窩"
+      "text": {
+        "zh-TW": "連不到家裡的貓窩",
+        "en": "Can't reach the server"
+      }
     }
   },
   "rules": [
@@ -113,27 +122,60 @@
     "ms": 1500
   },
   "lines": {
-    "normal": [
-      "要寫什麼？",
-      "Codex 待命中"
-    ],
-    "warning": [
-      "這週用了不少喔"
-    ],
-    "critical": [
-      "這週沒了…",
-      "等提前重置！"
-    ],
-    "offline": [
-      "連不上…"
-    ],
-    "working": [
-      "編譯中…",
-      "跑測試中"
-    ],
-    "idle": [
-      "zzz…"
-    ]
+    "normal": {
+      "zh-TW": [
+        "要寫什麼？",
+        "Codex 待命中"
+      ],
+      "en": [
+        "What are we building?",
+        "Codex standing by"
+      ]
+    },
+    "warning": {
+      "zh-TW": [
+        "這週用了不少喔"
+      ],
+      "en": [
+        "Used a lot this week"
+      ]
+    },
+    "critical": {
+      "zh-TW": [
+        "這週沒了…",
+        "等提前重置！"
+      ],
+      "en": [
+        "Out for this week…",
+        "Hoping for an early reset!"
+      ]
+    },
+    "offline": {
+      "zh-TW": [
+        "連不上…"
+      ],
+      "en": [
+        "Can't connect…"
+      ]
+    },
+    "working": {
+      "zh-TW": [
+        "編譯中…",
+        "跑測試中"
+      ],
+      "en": [
+        "Compiling…",
+        "Running tests"
+      ]
+    },
+    "idle": {
+      "zh-TW": [
+        "zzz…"
+      ],
+      "en": [
+        "zzz…"
+      ]
+    }
   },
   "offset": {
     "x": 0,

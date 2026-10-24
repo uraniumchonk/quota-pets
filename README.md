@@ -46,6 +46,14 @@ about 0.3 s.
 | Ctrl + mouse wheel on a character | Zoom the whole row in 5 % steps; menu "大小" has 50–150 % presets |
 | Right-click (character or tray) | Adjust, lock, size, window binding, refresh, reload, open folder, start at login, quit |
 
+### Language
+
+The interface comes in Traditional Chinese and English. Right-click → "語言 / Language": System
+(default; Chinese systems get Chinese, everything else English), 繁體中文, English. Stored as `lang`
+in `config.json` (`auto` / `zh-TW` / `en`). Character names, sign labels, lines and pose texts can be
+a plain string or per language, e.g. `"label": { "zh-TW": "主 5h", "en": "Main 5h" }`. Interface
+strings live in `app/i18n.json`; a new language is one more block with the same keys.
+
 ### Show only with chosen windows (optional)
 
 Focus a window (for example one terminal) and press **Ctrl+Alt+B** to bind or unbind it. With at

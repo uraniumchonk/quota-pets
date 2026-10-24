@@ -29,6 +29,9 @@ class App {
 
   setConfig(cfg) {
     this.cfg = cfg;
+    QP.strings = cfg.strings || QP.strings;
+    QP.lang = cfg.langResolved || QP.lang;
+    document.documentElement.lang = QP.lang;
     this.view.build(cfg);
     this.relayout();
     if (QP.editing) this.editor.render();
@@ -67,7 +70,9 @@ class App {
 
   say(i) {
     const ch = this.cfg.chars[i];
-    const lines = (ch.lines || {})[this.view.els[i].lastPose] || (ch.lines || {}).normal || [];
+    const L = QP.loc(ch.lines) || {};
+    const pick = v => { v = QP.loc(v); return Array.isArray(v) && v.length ? v : null; };
+    const lines = pick(L[this.view.els[i].lastPose]) || pick(L.normal) || [];
     if (lines.length) this.view.say(i, lines[Math.floor(Math.random() * lines.length)], (this.cfg.bubble || {}).showSec);
   }
 
@@ -135,7 +140,7 @@ class App {
     this.relayout();
     if (QP.editing) this.editor.render();
     else { clearTimeout(this.zoomSave); this.zoomSave = setTimeout(() => host.save(this.cfg, {}), 500); }
-    this.view.say(0, `大小 ${Math.round(this.cfg.rail.zoom * 100)}%`, 1.5);
+    this.view.say(0, QP.t('zoom', { n: Math.round(this.cfg.rail.zoom * 100) }), 1.5);
   }
 
   bindPointer() {

@@ -1,5 +1,8 @@
 {
-  "name": "Qwen 本地 coder（紫髮）",
+  "name": {
+    "zh-TW": "Qwen 本地 coder（紫髮）",
+    "en": "Qwen local coder (purple hair)"
+  },
   "size": {
     "w": 1448,
     "h": 1086
@@ -54,7 +57,10 @@
     },
     "offline": {
       "img": "normal.png",
-      "text": "連不到家裡的貓窩"
+      "text": {
+        "zh-TW": "連不到家裡的貓窩",
+        "en": "Can't reach the server"
+      }
     }
   },
   "rules": [
@@ -107,26 +113,58 @@
     "ms": 1500
   },
   "lines": {
-    "normal": [
-      "本地的不用額度！",
-      "粗活交給我"
-    ],
-    "warning": [
-      "…"
-    ],
-    "critical": [
-      "…"
-    ],
-    "offline": [
-      "連不上…"
-    ],
-    "working": [
-      "粗活交給我",
-      "跑批次中"
-    ],
-    "idle": [
-      "zzz…"
-    ]
+    "normal": {
+      "zh-TW": [
+        "本地的不用額度！",
+        "粗活交給我"
+      ],
+      "en": [
+        "Local models need no quota!",
+        "Leave the chores to me"
+      ]
+    },
+    "warning": {
+      "zh-TW": [
+        "…"
+      ],
+      "en": [
+        "…"
+      ]
+    },
+    "critical": {
+      "zh-TW": [
+        "…"
+      ],
+      "en": [
+        "…"
+      ]
+    },
+    "offline": {
+      "zh-TW": [
+        "連不上…"
+      ],
+      "en": [
+        "Can't connect…"
+      ]
+    },
+    "working": {
+      "zh-TW": [
+        "粗活交給我",
+        "跑批次中"
+      ],
+      "en": [
+        "Chores in progress",
+        "Running a batch"
+      ]
+    },
+    "idle": {
+      "zh-TW": [
+        "zzz…"
+      ],
+      "en": [
+        "zzz…"
+      ]
+    }
   },
   "offset": {
     "x": 0,

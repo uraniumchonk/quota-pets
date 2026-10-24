@@ -126,33 +126,30 @@ QP.Editor = class {
   }
 
   render() {
-    const names = { img: '角色圖片位置', text: '牌子文字框', ledge: '欄位', all: '整排' };
+    const T = QP.t, names = { img: T('ed.img'), text: T('ed.text'), ledge: T('ed.ledge'), all: T('ed.all') };
     const t = this.target(), part = this.sel.part, pose = this.currentPose();
     const v = n => (n == null ? '—' : Math.round(n * 100) / 100);
     let vals;
-    if (part === 'img') vals = `x ${v(t.x)}　y ${v(t.y)}　大小 ${v(this.ch.scale || 1)}`;
-    else if (part === 'text') vals = `x ${v(t.x)}　y ${v(t.y)}　寬 ${v(t.w)}　高 ${v(t.h)}　字 ${v(t.fontSize)}　轉 ${v(t.rotate || 0)}°`;
-    else if (part === 'ledge') vals = `y ${v(t.y)}　厚 ${v(t.height)}　左右多出 ${v(t.overhang)}`;
-    else vals = `整排上下 ${v(t.shiftY || 0)}　間距 ${v(t.gap)}　大小 ${Math.round(QP.zoom(this.cfg) * 100)}%`;
-    const who = part === 'ledge' || part === 'all' ? '' : `${this.ch.name}・`;
+    if (part === 'img') vals = T('ed.valImg', { x: v(t.x), y: v(t.y), s: v(this.ch.scale || 1) });
+    else if (part === 'text') vals = T('ed.valText', { x: v(t.x), y: v(t.y), w: v(t.w), h: v(t.h), f: v(t.fontSize), r: v(t.rotate || 0) });
+    else if (part === 'ledge') vals = T('ed.valLedge', { y: v(t.y), h: v(t.height), o: v(t.overhang) });
+    else vals = T('ed.valAll', { y: v(t.shiftY || 0), g: v(t.gap), z: Math.round(QP.zoom(this.cfg) * 100) });
+    const who = part === 'ledge' || part === 'all' ? '' : `${QP.loc(this.ch.name)} · `;
     const keys = {
-      img: '方向鍵 移動（Shift ×10）　Alt+↑↓ 大小',
-      text: '方向鍵 移動　Alt+方向鍵 寬高　+ − 字級　[ ] 旋轉',
-      ledge: '↑↓ 上下　←→ 左右多出　Alt+↑↓ 厚度',
-      all: '↑↓ 整排上下（負數＝頭伸出螢幕外）　←→ 間距　Alt+↑↓ 等比大小（1%，Shift 10%）',
+      img: T('ed.keysImg'), text: T('ed.keysText'), ledge: T('ed.keysLedge'), all: T('ed.keysAll'),
     }[part];
     this.panel.innerHTML = `
       <div class="p-head"><b>${who}${names[part]}</b><span>${vals}</span></div>
-      <div class="p-keys">${keys}　Tab 換下一個　P 換姿勢</div>
+      <div class="p-keys">${keys}　${T('ed.keysCommon')}</div>
       <div class="p-row">
-        <span>姿勢：${pose.key}${part === 'text' ? (pose.ownTextBox ? '（此姿勢專用文字框）' : '（共用文字框）') : ''}</span>
+        <span>${T('ed.pose', { p: pose.key })}${part === 'text' ? T(pose.ownTextBox ? 'ed.own' : 'ed.shared') : ''}</span>
         <button data-a="pose-1">◀</button><button data-a="pose1">▶</button>
-        ${part === 'text' ? '<button data-a="own">切換專用／共用</button>' : ''}
+        ${part === 'text' ? `<button data-a="own">${T('ed.toggleOwn')}</button>` : ''}
       </div>
       <div class="p-row">
-        <button data-a="save">存檔 Ctrl+S</button>
-        <button data-a="lock" class="primary">鎖定 Enter</button>
-        <button data-a="cancel">放棄 Esc</button>
+        <button data-a="save">${T('ed.save')}</button>
+        <button data-a="lock" class="primary">${T('ed.lock')}</button>
+        <button data-a="cancel">${T('ed.cancel')}</button>
       </div>`;
     this.panel.querySelectorAll('button').forEach(b => b.onclick = () => {
       const a = b.dataset.a;

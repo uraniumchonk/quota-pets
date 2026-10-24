@@ -97,7 +97,6 @@ QP.View = class {
     const ch = this.cfg.chars[i], e = this.els[i];
     setMedia(e, 'back', ch.base, pose.img, this.cfg.version);
     setMedia(e, 'front', ch.base, pose.front, this.cfg.version);
-    e.back.dataset.anim = e.front.dataset.anim = pose.anim;
 
     const t = pose.textBox, st = e.tb.style, k = this.lay.slots[i].s;
     st.left = t.x * k + 'px'; st.top = t.y * k + 'px'; st.width = t.w * k + 'px'; st.height = t.h * k + 'px';
@@ -106,7 +105,7 @@ QP.View = class {
     st.fontSize = (t.fontSize || 20) * k + 'px';
     if (t.font) st.fontFamily = t.font;
 
-    const html = pose.text ? `<div class="tb-msg">${esc(pose.text)}</div>` : pose.showQuota ? signHtml(ch, ctx, this.cfg.display) : '';
+    const html = pose.text ? `<div class="tb-msg">${esc(QP.loc(pose.text))}</div>` : pose.showQuota ? signHtml(ch, ctx, this.cfg.display) : '';
     e.tb.hidden = !html && !QP.editing;
     if (html !== e.html) { e.inner.innerHTML = html; e.html = html; fit(e); }
     else if (e.fitFor !== `${t.w}x${t.h}x${t.fontSize}x${k}`) fit(e);
@@ -144,7 +143,7 @@ function setMedia(e, layer, base, file, ver) {
 // display "used" (default): number and bar show the used share; "left": the remaining share
 function signHtml(ch, ctx, display) {
   if (!ctx.rows.length) {
-    const st = QP.STATE_LABEL[ctx.agentState] || ctx.agentState;
+    const st = QP.stateLabel(ctx.agentState);
     return `<div class="tb-msg"><b>${esc(st)}</b>${ctx.agentDoing ? `<small>${esc(ctx.agentDoing.slice(0, 22))}</small>` : ''}</div>`;
   }
   const showLeft = display === 'left';
@@ -154,9 +153,9 @@ function signHtml(ch, ctx, display) {
   }).join('');
   let foot = '';
   if (ch.footer === 'reset' && ctx.worstRow && ctx.worstRow.resetsAt) {
-    foot = `<div class="foot">${esc(ctx.worstRow.label)} ${QP.fmtLeft(ctx.worstRow.resetsAt - ctx.now)}後重置</div>`;
+    foot = `<div class="foot">${esc(QP.t('reset', { label: ctx.worstRow.label, t: QP.fmtLeft(ctx.worstRow.resetsAt - ctx.now) }))}</div>`;
   }
-  if (ctx.source === 'offline') foot = '<div class="foot">離線，顯示上次的數字</div>';
+  if (ctx.source === 'offline') foot = `<div class="foot">${esc(QP.t('offlineFoot'))}</div>`;
   return rows + foot;
 }
 

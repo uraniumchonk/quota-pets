@@ -17,6 +17,7 @@ app writes quota numbers onto that paper. Data comes from an HTTP server (`serve
 | `app/main.cjs` | Main process: window, tray and right-click menu, drag and snap, polling the data server, demo data, loading and saving the pets folder, upgrade carry-over, window binding glue, zoom menu |
 | `app/winbind.cjs` | Window binding. Spawns a hidden PowerShell that hooks Windows events (foreground, minimize) through C# `Add-Type` and prints JSON lines |
 | `app/preload.cjs` | IPC bridge exposed as `window.host` |
+| `app/i18n.json` | Interface strings per language (`zh-TW`, `en`); main passes the chosen set to the renderer as `cfg.strings` |
 | `app/renderer/js/quota.js` | Turns the API payload into one context object per character (rows, severity, agent state, idle seconds) |
 | `app/renderer/js/rules.js` | Rule conditions (`QP.conditions`) and pose resolution |
 | `app/renderer/js/view.js` | Layout and drawing: frames, sign text, bubbles |
@@ -62,11 +63,18 @@ app writes quota numbers onto that paper. Data comes from an HTTP server (`serve
 - PowerShell C# code in `winbind.cjs` must compile as C# 5 (Windows PowerShell 5.1): no string
   interpolation, no `?.`, no `out var`.
 
+## Text and languages
+
+- Interface text goes through `t(key, vars)` in `main.cjs` and `QP.t(key, vars)` in the renderer, with
+  keys in `app/i18n.json`. Add every new string to all languages there; do not hard-code UI text.
+- Character content (`name`, `quota[].label`, `lines`, pose `text`) may be a string or
+  `{ "zh-TW": ..., "en": ... }`; read it through `QP.loc()`.
+
 ## Checking your work
 
 - Syntax: `node --check` on each `.cjs` / `.js` file.
 - Browser preview with fake data: `cd app && python3 -m http.server 18777`, open
-  `http://127.0.0.1:18777/renderer/index.html` (`?state=warning|critical|sleep`, `?edit=1`).
+  `http://127.0.0.1:18777/renderer/index.html` (`?state=warning|critical|sleep`, `?edit=1`, `?lang=en`).
   Force poses from the console: `QP.app.forcePose = {0: 'working'}; QP.app.tick()`.
 - Real Electron on Linux without a display: `npm install`, then
   `xvfb-run -a node_modules/.bin/electron --no-sandbox --user-data-dir=/tmp/qp app`.

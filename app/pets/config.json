@@ -39,7 +39,7 @@
     ],
     "showSec": 5
   },
-  "bundleVersion": 8,
+  "bundleVersion": 9,
   "bind": {
     "enabled": false,
     "mode": "foreground",
@@ -47,5 +47,6 @@
     "hideDelaySec": 0.2,
     "hotkey": "Ctrl+Alt+B"
   },
-  "display": "used"
+  "display": "used",
+  "lang": "auto"
 }

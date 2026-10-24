@@ -1,5 +1,5 @@
 // Browser preview without Electron: serve the app folder over http and open
-// renderer/index.html (?edit=1 opens adjust mode, ?state=warning|critical|sleep picks sample data).
+// renderer/index.html (?edit=1 opens adjust mode, ?state=warning|critical|sleep picks sample data, ?lang=en).
 if (!window.host) (function () {
   const q = new URLSearchParams(location.search);
   const handlers = {};
@@ -31,6 +31,8 @@ if (!window.host) (function () {
       cfg.chars.push(ch);
     }
     cfg.version = 1;
+    cfg.langResolved = q.get('lang') || 'zh-TW';
+    cfg.strings = (await (await fetch('../i18n.json')).json())[cfg.langResolved];
     return cfg;
   }
   window.host = {
