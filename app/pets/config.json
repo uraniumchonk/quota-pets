@@ -38,12 +38,12 @@
     ],
     "showSec": 5
   },
-  "bundleVersion": 5,
+  "bundleVersion": 6,
   "bind": {
     "enabled": false,
     "mode": "foreground",
     "match": [],
-    "hideDelaySec": 1.5,
+    "hideDelaySec": 0.2,
     "hotkey": "Ctrl+Alt+B"
   },
   "display": "used"

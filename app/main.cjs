@@ -51,6 +51,7 @@ function carryOver(bak) {
     if (k === 'bind' && (oldTop.bundleVersion || 1) < 5) continue;   // v4 shipped an example binding
     if (k in oldTop) top[k] = oldTop[k];
   }
+  if (top.bind && (oldTop.bundleVersion || 1) < 6) top.bind.hideDelaySec = 0.2;   // v5 waited 1.5 s
   fs.writeFileSync(path.join(PETS, 'config.json'), JSON.stringify(top, null, 2) + '\n');
   for (const id of top.characters || []) {
     const f = path.join(PETS, 'characters', id, 'character.json'), of = path.join(bak, 'characters', id, 'character.json');
@@ -210,12 +211,12 @@ function applyVisibility() {
     clearTimeout(hideTimer); hideTimer = null;
     if (!shown) { shown = true; win.showInactive(); win.setAlwaysOnTop(true, 'screen-saver'); }
   } else if (shown && !hideTimer) {
-    hideTimer = setTimeout(() => { hideTimer = null; shown = false; win.hide(); }, ((cfg.bind && cfg.bind.hideDelaySec) ?? 1.5) * 1000);
+    hideTimer = setTimeout(() => { hideTimer = null; shown = false; win.hide(); }, ((cfg.bind && cfg.bind.hideDelaySec) ?? 0.2) * 1000);
   }
 }
 
 function saveBind(change) {
-  cfg.bind = Object.assign({ enabled: false, mode: 'foreground', match: [], hideDelaySec: 1.5 }, cfg.bind);
+  cfg.bind = Object.assign({ enabled: false, mode: 'foreground', match: [], hideDelaySec: 0.2 }, cfg.bind);
   change(cfg.bind);
   saveConfig(cfg);
   send('config', cfg);
