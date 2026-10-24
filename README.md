@@ -13,7 +13,7 @@ On a real desktop, over Windows Terminal:
 
 ![quota-pets on a desktop](docs/screenshot.png)
 
-> **Status:** v0.10.1 is the last planned release. Fork it and change anything you like: the repo
+> **Status:** v0.10.2 is the last planned release. Fork it and change anything you like: the repo
 > ships an [AGENTS.md](AGENTS.md) that walks a coding agent through the data backend, characters,
 > poses, rules and layout.
 

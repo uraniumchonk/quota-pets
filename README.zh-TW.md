@@ -10,7 +10,7 @@ Windows 桌面最上方的一排 Q 版小人，每隻抱著一張白紙，紙上
 
 ![額度小人在桌面上](docs/screenshot.png)
 
-> **狀態**：v0.10.1 預計是最後一版。歡迎 fork 回去隨意改；專案附帶 [AGENTS.md](AGENTS.md)，coding agent 看了就知道資料後端怎麼搭、角色／姿勢／規則／版面怎麼改。
+> **狀態**：v0.10.2 預計是最後一版。歡迎 fork 回去隨意改；專案附帶 [AGENTS.md](AGENTS.md)，coding agent 看了就知道資料後端怎麼搭、角色／姿勢／規則／版面怎麼改。
 
 ## 功能
 
