@@ -18,6 +18,23 @@ Windows 桌面最上層的一排 Q 版小人，每隻抱著一張白紙，紙上
 | 滑鼠在圖片透明處 | 點擊穿過去，點到後面的視窗 |
 | 右鍵（小人或系統匣） | 調整位置、鎖定位置、立即刷新、重新載入、開啟角色資料夾、開機自動啟動、結束 |
 
+## 綁定視窗（可選，右鍵 →「綁定視窗」）
+
+預設一直顯示。打開「只在綁定的視窗出現」後：
+
+- 「綁定視窗在最前面時」：綁定的程式在最前面才出現，切走 1.5 秒後隱藏。點小人本身不算切走。
+- 「綁定視窗有開著時」：綁定的程式只要有開著視窗就出現。
+- 「加入開著的視窗」列出現在開著的程式，點一下就綁定（可綁多個，任一符合就出現）；「移除：…」解除。
+- 調整模式中一律顯示。
+
+設定存在 `config.json` 的 `bind`：
+
+```json
+"bind": { "enabled": true, "mode": "foreground", "match": [{ "process": "WindowsTerminal" }, { "title": "Claude" }], "hideDelaySec": 1.5 }
+```
+
+`process` 是程式名稱（不分大小寫，可帶或不帶 .exe），`title` 是視窗標題包含的文字；同一筆兩個都寫就要兩個都符合。偵測用一個隱藏的 PowerShell，每 0.4 秒看一次最前面的視窗。
+
 ## 調整模式（右鍵 →「調整位置…」）
 
 點選要調的部分，或按 Tab 依序切換：每隻的「角色圖片」「牌子文字框」，再來是「欄位」「整排」。
@@ -78,6 +95,7 @@ pets/
 | `scale`、`offset` | 這隻的大小倍率與位置（螢幕像素） |
 | `agent` | agentstat 裡的 agent id，用來判斷工作中／閒置／睡著 |
 | `quota` | 牌子上列哪些額度：`provider` 是 agentstat 的 claude／claude2／codex／grok，`window` 是 5h／7d，`label` 是顯示文字。留空陣列就改顯示 agent 狀態 |
+| （config）`display` | `used`（預設）數字和進度條是已用 %；`left` 改成剩餘 % |
 | `footer` | `reset` 顯示最緊那項的重置倒數；`state` 不顯示倒數 |
 | `textBox` | 文字框位置，用圖片像素：`x y w h rotate fontSize color`，可加 `font` |
 | `poses` | 姿勢表。每個姿勢：`img`、`front`、`showQuota`（false＝不顯示額度）、`text`（改顯示固定文字）、`textBox`（此姿勢專用位置）、`anim`（`bob` 上下晃，`none` 不動） |

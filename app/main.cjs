@@ -4,6 +4,7 @@ const { app, BrowserWindow, ipcMain, screen, Menu, Tray, shell, nativeImage } = 
 const fs = require('fs');
 const path = require('path');
 const { pathToFileURL, fileURLToPath } = require('url');
+const { WinBind } = require('./winbind.cjs');
 
 const BUNDLED = path.join(__dirname, 'pets');
 let PETS;                       // user copy, editable: %APPDATA%/quota-pets/pets
@@ -12,6 +13,7 @@ let editing = false;
 let data = { quota: null, agents: null, quotaAt: 0, agentsAt: 0, error: null };
 let timers = [];
 let suppressWatchUntil = 0;
+let binder, shown = true, hideTimer = null;
 
 if (!app.requestSingleInstanceLock()) app.quit();
 
@@ -167,11 +169,54 @@ function dragEnd() {
   send('config', cfg);
 }
 
+// ---------- window binding: show only while a chosen window is in front / open ----------
+function applyVisibility() {
+  if (!win || win.isDestroyed()) return;
+  const want = editing ? true : binder.shouldShow(cfg.bind);
+  if (want === null) return;
+  if (want) {
+    clearTimeout(hideTimer); hideTimer = null;
+    if (!shown) { shown = true; win.showInactive(); win.setAlwaysOnTop(true, 'screen-saver'); }
+  } else if (shown && !hideTimer) {
+    hideTimer = setTimeout(() => { hideTimer = null; shown = false; win.hide(); }, ((cfg.bind && cfg.bind.hideDelaySec) ?? 1.5) * 1000);
+  }
+}
+
+function saveBind(change) {
+  cfg.bind = Object.assign({ enabled: false, mode: 'foreground', match: [], hideDelaySec: 1.5 }, cfg.bind);
+  change(cfg.bind);
+  saveConfig(cfg);
+  send('config', cfg);
+  applyVisibility();
+}
+
+function bindMenu() {
+  const b = Object.assign({ enabled: false, mode: 'foreground', match: [] }, cfg.bind);
+  const label = r => [r.process, r.title && `「${r.title}」`].filter(Boolean).join(' ');
+  const items = [
+    { label: '只在綁定的視窗出現', type: 'checkbox', checked: !!b.enabled, click: m => saveBind(x => { x.enabled = m.checked; }) },
+    { label: '綁定視窗在最前面時', type: 'radio', checked: b.mode !== 'open', click: () => saveBind(x => { x.mode = 'foreground'; }) },
+    { label: '綁定視窗有開著時', type: 'radio', checked: b.mode === 'open', click: () => saveBind(x => { x.mode = 'open'; }) },
+    { type: 'separator' },
+  ];
+  if (b.match.length) b.match.forEach((r, i) => items.push({ label: `移除：${label(r)}`, click: () => saveBind(x => { x.match.splice(i, 1); }) }));
+  else items.push({ label: '（還沒有綁定）', enabled: false });
+  const open = binder.openList().filter(w => !b.match.some(r => r.process && r.process.toLowerCase() === w.proc.toLowerCase()));
+  items.push({ type: 'separator' }, {
+    label: '加入開著的視窗',
+    submenu: open.length
+      ? open.map(w => ({ label: `${w.proc} — ${String(w.title).slice(0, 40)}`, click: () => saveBind(x => { x.match.push({ process: w.proc }); x.enabled = true; }) }))
+      : [{ label: process.platform === 'win32' ? '（讀取中，稍後再開一次）' : '（只支援 Windows）', enabled: false }],
+  });
+  return items;
+}
+
 // ---------- menus ----------
 function menu() {
   return Menu.buildFromTemplate([
     { label: editing ? '結束調整（不存）' : '調整位置…', click: () => setEditing(!editing) },
     { label: '鎖定位置', type: 'checkbox', checked: !!cfg.rail.locked, click: (m) => { cfg.rail.locked = m.checked; saveConfig(cfg); send('config', cfg); } },
+    { label: '綁定視窗', submenu: bindMenu() },
     { type: 'separator' },
     { label: '立即刷新額度', click: async () => {
         try { await fetch(cfg.server + '/api/refresh', { method: 'POST' }); } catch {}
@@ -190,6 +235,7 @@ function setEditing(on) {
   win.setIgnoreMouseEvents(false);
   if (on) win.focus();
   send('editing', on);
+  if (binder) applyVisibility();
 }
 
 // ---------- boot ----------
@@ -236,6 +282,9 @@ app.whenReady().then(() => {
   });
   ipcMain.on('edit', (_e, on) => { if (!on) cfg = loadConfig(); setEditing(on); send('config', cfg); });
 
+  binder = new WinBind(app.getPath('userData'), applyVisibility);
+  binder.start();
+  app.on('before-quit', () => binder.stop());
   screen.on('display-metrics-changed', () => place());
   watchPets();
   restartPolling();

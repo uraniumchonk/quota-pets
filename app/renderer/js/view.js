@@ -104,7 +104,7 @@ QP.View = class {
     st.fontSize = (t.fontSize || 20) + 'px';
     if (t.font) st.fontFamily = t.font;
 
-    const html = pose.text ? `<div class="tb-msg">${esc(pose.text)}</div>` : pose.showQuota ? signHtml(ch, ctx) : '';
+    const html = pose.text ? `<div class="tb-msg">${esc(pose.text)}</div>` : pose.showQuota ? signHtml(ch, ctx, this.cfg.display) : '';
     e.tb.hidden = !html && !QP.editing;
     if (html !== e.html) { e.inner.innerHTML = html; e.html = html; fit(e); }
     else if (e.fitFor !== `${t.w}x${t.h}x${t.fontSize}`) fit(e);
@@ -139,12 +139,17 @@ function setMedia(e, layer, base, file, ver) {
   host.prepend(el);
 }
 
-function signHtml(ch, ctx) {
+// display "used" (default): number and bar show the used share; "left": the remaining share
+function signHtml(ch, ctx, display) {
   if (!ctx.rows.length) {
     const st = QP.STATE_LABEL[ctx.agentState] || ctx.agentState;
     return `<div class="tb-msg"><b>${esc(st)}</b>${ctx.agentDoing ? `<small>${esc(ctx.agentDoing.slice(0, 22))}</small>` : ''}</div>`;
   }
-  const rows = ctx.rows.map(r => `<div class="row"><b>${esc(r.label)}</b><span class="bar"><i style="width:${r.left ?? 0}%;background:${SEV_COLOR[r.severity]}"></i></span><em>${r.left == null ? '—' : r.left + '%'}</em></div>`).join('');
+  const showLeft = display === 'left';
+  const rows = ctx.rows.map(r => {
+    const v = r.used == null ? null : showLeft ? r.left : Math.min(100, Math.round(r.used));
+    return `<div class="row"><b>${esc(r.label)}</b><span class="bar"><i style="width:${v ?? 0}%;background:${SEV_COLOR[r.severity]}"></i></span><em>${v == null ? '—' : v + '%'}</em></div>`;
+  }).join('');
   let foot = '';
   if (ch.footer === 'reset' && ctx.worstRow && ctx.worstRow.resetsAt) {
     foot = `<div class="foot">${esc(ctx.worstRow.label)} ${QP.fmtLeft(ctx.worstRow.resetsAt - ctx.now)}後重置</div>`;
