@@ -38,16 +38,13 @@
     ],
     "showSec": 5
   },
-  "bundleVersion": 4,
+  "bundleVersion": 5,
   "bind": {
     "enabled": false,
     "mode": "foreground",
-    "match": [
-      {
-        "process": "WindowsTerminal"
-      }
-    ],
-    "hideDelaySec": 1.5
+    "match": [],
+    "hideDelaySec": 1.5,
+    "hotkey": "Ctrl+Alt+B"
   },
   "display": "used"
 }

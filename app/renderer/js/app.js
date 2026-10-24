@@ -16,6 +16,7 @@ class App {
     this.setConfig(cfg); this.data = data || {};
     host.on('config', c => this.setConfig(c));
     host.on('data', d => { this.data = d; this.tick(); });
+    host.on('toast', text => { const i = this.cfg.chars.length ? 0 : -1; if (i >= 0) this.view.say(i, text, 3); });
     host.on('editing', on => (on ? this.editor.start() : this.editor.stop(), this.relayout()));
     if (editing) this.editor.start();
     this.bindPointer();

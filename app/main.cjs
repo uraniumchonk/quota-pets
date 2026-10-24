@@ -1,6 +1,6 @@
 // Quota pets: a transparent always-on-top strip of characters that show agentstat quota.
 // Main process owns the window, the pets folder (config + art), polling and the menus.
-const { app, BrowserWindow, ipcMain, screen, Menu, Tray, shell, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, screen, Menu, Tray, shell, nativeImage, globalShortcut } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const { pathToFileURL, fileURLToPath } = require('url');
@@ -32,8 +32,40 @@ function installPets() {
   const bundled = readJson(path.join(BUNDLED, 'config.json')).bundleVersion || 1;
   let mine = 0;
   try { mine = readJson(path.join(PETS, 'config.json')).bundleVersion || 1; } catch {}
-  if (mine && mine < bundled) fs.renameSync(PETS, PETS + '.bak-' + new Date().toISOString().replace(/[:.]/g, '-'));
+  let bak = null;
+  if (mine && mine < bundled) {
+    bak = PETS + '.bak-' + new Date().toISOString().replace(/[:.]/g, '-');
+    fs.renameSync(PETS, bak);
+  }
   copyDir(BUNDLED, PETS);
+  if (bak) try { carryOver(bak); } catch (e) { console.error('carry over', e.message); }
+}
+
+// Keep the user's tuning across a bundle upgrade: placement, size, binding, and each
+// character's offset / scale / text boxes (a pose's box only when its image file is unchanged).
+function carryOver(bak) {
+  const oldTop = readJson(path.join(bak, 'config.json'));
+  const top = readJson(path.join(PETS, 'config.json'));
+  for (const k of ['anchor', 'x', 'y', 'display', 'shiftY', 'gap', 'scale', 'locked']) if (oldTop.rail && k in oldTop.rail) top.rail[k] = oldTop.rail[k];
+  for (const k of ['bind', 'display', 'server']) {
+    if (k === 'bind' && (oldTop.bundleVersion || 1) < 5) continue;   // v4 shipped an example binding
+    if (k in oldTop) top[k] = oldTop[k];
+  }
+  fs.writeFileSync(path.join(PETS, 'config.json'), JSON.stringify(top, null, 2) + '\n');
+  for (const id of top.characters || []) {
+    const f = path.join(PETS, 'characters', id, 'character.json'), of = path.join(bak, 'characters', id, 'character.json');
+    if (!fs.existsSync(of)) continue;
+    const ch = readJson(f), old = readJson(of);
+    if (old.offset) ch.offset = old.offset;
+    if (old.scale) ch.scale = old.scale;
+    const oldNormal = old.poses && old.poses.normal && old.poses.normal.img;
+    if (old.textBox && oldNormal && ch.poses.normal && ch.poses.normal.img === oldNormal) ch.textBox = old.textBox;
+    for (const [name, p] of Object.entries(ch.poses || {})) {
+      const op = old.poses && old.poses[name];
+      if (op && op.textBox && op.img === p.img) p.textBox = op.textBox;
+    }
+    fs.writeFileSync(f, JSON.stringify(ch, null, 2) + '\n');
+  }
 }
 
 // Alpha mask of an image at 1/8 size, so clicks on transparent pixels fall through.
@@ -190,25 +222,67 @@ function saveBind(change) {
   applyVisibility();
 }
 
+function ruleLabel(r) {
+  if (r.hwnd) return `${r.process || '視窗'}「${String(r.title || '').slice(0, 30)}」`;
+  return [r.process && `${r.process}（全部視窗）`, r.title && `標題含「${r.title}」`].filter(Boolean).join(' ');
+}
+
+// Bind or unbind one window (by handle). Used by the hotkey and the menu.
+function toggleWindow(w) {
+  if (!w) return;
+  let bound = false;
+  saveBind(x => {
+    const i = x.match.findIndex(r => r.hwnd && Number(r.hwnd) === Number(w.hwnd));
+    if (i >= 0) x.match.splice(i, 1);
+    else { x.match.push({ hwnd: w.hwnd, process: w.proc, title: w.title }); x.enabled = true; bound = true; }
+  });
+  send('toast', `${bound ? '已綁定' : '已解除'}：${w.proc || ''} ${String(w.title || '').slice(0, 24)}`);
+}
+
 function bindMenu() {
   const b = Object.assign({ enabled: false, mode: 'foreground', match: [] }, cfg.bind);
-  const label = r => [r.process, r.title && `「${r.title}」`].filter(Boolean).join(' ');
+  const hot = b.hotkey || 'Ctrl+Alt+B';
   const items = [
     { label: '只在綁定的視窗出現', type: 'checkbox', checked: !!b.enabled, click: m => saveBind(x => { x.enabled = m.checked; }) },
-    { label: '綁定視窗在最前面時', type: 'radio', checked: b.mode !== 'open', click: () => saveBind(x => { x.mode = 'foreground'; }) },
-    { label: '綁定視窗有開著時', type: 'radio', checked: b.mode === 'open', click: () => saveBind(x => { x.mode = 'open'; }) },
+    { label: '切到綁定的視窗時出現', type: 'radio', checked: b.mode !== 'open', click: () => saveBind(x => { x.mode = 'foreground'; }) },
+    { label: '綁定的視窗有開著就出現', type: 'radio', checked: b.mode === 'open', click: () => saveBind(x => { x.mode = 'open'; }) },
+    { label: `快捷鍵 ${hot}：綁定／解除目前的視窗`, enabled: false },
     { type: 'separator' },
   ];
-  if (b.match.length) b.match.forEach((r, i) => items.push({ label: `移除：${label(r)}`, click: () => saveBind(x => { x.match.splice(i, 1); }) }));
-  else items.push({ label: '（還沒有綁定）', enabled: false });
-  const open = binder.openList().filter(w => !b.match.some(r => r.process && r.process.toLowerCase() === w.proc.toLowerCase()));
-  items.push({ type: 'separator' }, {
-    label: '加入開著的視窗',
-    submenu: open.length
-      ? open.map(w => ({ label: `${w.proc} — ${String(w.title).slice(0, 40)}`, click: () => saveBind(x => { x.match.push({ process: w.proc }); x.enabled = true; }) }))
-      : [{ label: process.platform === 'win32' ? '（讀取中，稍後再開一次）' : '（只支援 Windows）', enabled: false }],
-  });
+  if (b.match.length) {
+    b.match.forEach((r, i) => items.push({
+      label: `移除：${ruleLabel(r)}${binder.isOpen(r) ? '' : '（已關閉）'}`,
+      click: () => saveBind(x => { x.match.splice(i, 1); }),
+    }));
+    if (b.match.some(r => !binder.isOpen(r)) && process.platform === 'win32')
+      items.push({ label: '清掉已關閉的視窗', click: () => saveBind(x => { x.match = x.match.filter(r => !r.hwnd || binder.isOpen(r)); }) });
+  } else items.push({ label: '（還沒有綁定）', enabled: false });
+
+  const wins = binder.windows(), progs = binder.programs();
+  const none = [{ label: process.platform === 'win32' ? '（讀取中，稍後再開一次）' : '（只支援 Windows）', enabled: false }];
+  items.push({ type: 'separator' },
+    { label: '綁定單一視窗', submenu: wins.length ? wins.map(w => ({
+        label: `${w.proc} — ${String(w.title).slice(0, 50)}`, type: 'checkbox',
+        checked: b.match.some(r => r.hwnd && Number(r.hwnd) === Number(w.hwnd)),
+        click: () => toggleWindow(w) })) : none },
+    { label: '綁定整個程式（它的所有視窗）', submenu: progs.length ? progs.map(p => ({
+        label: p, type: 'checkbox',
+        checked: b.match.some(r => !r.hwnd && r.process && r.process.toLowerCase() === p.toLowerCase()),
+        click: m => saveBind(x => {
+          x.match = x.match.filter(r => r.hwnd || !r.process || r.process.toLowerCase() !== p.toLowerCase());
+          if (m.checked) { x.match.push({ process: p }); x.enabled = true; }
+        }) })) : none });
   return items;
+}
+
+function registerHotkey() {
+  globalShortcut.unregisterAll();
+  if (process.platform !== 'win32') return;
+  const key = (cfg.bind && cfg.bind.hotkey) || 'Ctrl+Alt+B';
+  try {
+    if (!globalShortcut.register(key.replace(/Ctrl/i, 'CommandOrControl'), () => toggleWindow(binder.lastOther)))
+      console.error('hotkey taken', key);
+  } catch (e) { console.error('hotkey', e.message); }
 }
 
 // ---------- menus ----------
@@ -284,7 +358,8 @@ app.whenReady().then(() => {
 
   binder = new WinBind(app.getPath('userData'), applyVisibility);
   binder.start();
-  app.on('before-quit', () => binder.stop());
+  registerHotkey();
+  app.on('before-quit', () => { binder.stop(); globalShortcut.unregisterAll(); });
   screen.on('display-metrics-changed', () => place());
   watchPets();
   restartPolling();
