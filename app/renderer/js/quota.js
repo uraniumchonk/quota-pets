@@ -20,9 +20,13 @@ QP.t = function (key, vars) {
   for (const [k, v] of Object.entries(vars || {})) s = s.split('{' + k + '}').join(v);
   return s;
 };
-// Character text may be a plain string or { "zh-TW": "...", "en": "..." }.
+// Character text may be a plain string or { "zh-TW": "...", "en": "..." }. Only an object whose
+// keys are all language codes counts as per-language text; anything else is returned as is.
+const LANG_KEY = /^[a-z]{2}(-[A-Za-z]{2,4})?$/;
 QP.loc = function (v) {
   if (v == null || typeof v !== 'object' || Array.isArray(v)) return v;
+  const keys = Object.keys(v);
+  if (!keys.length || !keys.every(k => LANG_KEY.test(k))) return v;
   return v[QP.lang] ?? v['zh-TW'] ?? v.en ?? Object.values(v)[0];
 };
 QP.stateLabel = s => QP.t('state.' + s) === 'state.' + s ? s : QP.t('state.' + s);

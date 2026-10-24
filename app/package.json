@@ -1,7 +1,7 @@
 {
   "name": "quota-pets",
   "productName": "額度小人",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "Desktop quota pets: chibi characters holding signs with your AI subscription quota",
   "main": "main.cjs",
   "private": true,

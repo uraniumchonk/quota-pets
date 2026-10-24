@@ -68,7 +68,9 @@ app writes quota numbers onto that paper. Data comes from an HTTP server (`serve
 - Interface text goes through `t(key, vars)` in `main.cjs` and `QP.t(key, vars)` in the renderer, with
   keys in `app/i18n.json`. Add every new string to all languages there; do not hard-code UI text.
 - Character content (`name`, `quota[].label`, `lines`, pose `text`) may be a string or
-  `{ "zh-TW": ..., "en": ... }`; read it through `QP.loc()`.
+  `{ "zh-TW": ..., "en": ... }`; read it through `QP.loc()`. `QP.loc()` treats an object as
+  per-language only when every key is a language code, so call it on the leaf value (for `lines`,
+  on `lines.<pose>`), not on a map keyed by pose names.
 
 ## Checking your work
 

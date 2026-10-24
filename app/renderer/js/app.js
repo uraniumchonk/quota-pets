@@ -70,7 +70,7 @@ class App {
 
   say(i) {
     const ch = this.cfg.chars[i];
-    const L = QP.loc(ch.lines) || {};
+    const L = ch.lines || {};
     const pick = v => { v = QP.loc(v); return Array.isArray(v) && v.length ? v : null; };
     const lines = pick(L[this.view.els[i].lastPose]) || pick(L.normal) || [];
     if (lines.length) this.view.say(i, lines[Math.floor(Math.random() * lines.length)], (this.cfg.bubble || {}).showSec);
