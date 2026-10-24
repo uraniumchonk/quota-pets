@@ -24,7 +24,7 @@ about 0.3 s.
 `server` in `pets/config.json`:
 
 - `"demo"` (default): no network; cycles through calm / busy / empty / idle every 15 s.
-- A base URL such as `"http://192.168.0.10:10026"`: reads `/api/quota` every 60 s and
+- A base URL such as `"http://localhost:10026"`: reads `/api/quota` every 60 s and
   `/api/agents` every 20 s. The JSON format is in [docs/API.md](docs/API.md); a small
   server in any language can provide it.
 

@@ -9,7 +9,7 @@ Windows 桌面最上層的一排 Q 版小人，每隻抱著一張白紙，紙上
 `config.json` 的 `server`：
 
 - `"demo"`（預設）：不連線，每 15 秒輪流示範平常、快用完、見底、閒置。
-- 你的伺服器網址，例如 `"http://192.168.0.10:10026"`：每 60 秒讀 `/api/quota`、每 20 秒讀 `/api/agents`。回傳格式見 [docs/API.md](docs/API.md)，任何語言寫個小服務照格式回 JSON 就能接。
+- 你的伺服器網址，例如 `"http://localhost:10026"`：每 60 秒讀 `/api/quota`、每 20 秒讀 `/api/agents`。回傳格式見 [docs/API.md](docs/API.md)，任何語言寫個小服務照格式回 JSON 就能接。
 
 ## 啟動
 
