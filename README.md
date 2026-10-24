@@ -42,15 +42,29 @@ pets/
   characters/
     claude/
       character.json          這隻的設定
-      normal.png              角色整張圖（含白紙）
+      normal.png              平常（抱著白紙）
+      01_working.png          agent 工作中（筆電＋白紙）
+      02_quota_empty.png      額度見底（哭，白紙）
+      03_idle.png             閒置（沒有白紙，不顯示額度）
     codex/ grok/ qwen/
 ```
 
-目前的對應：claude＝橘髮、codex＝白龍、grok＝哥德雙馬尾、qwen＝紫髮。要換人就互換資料夾裡的 `normal.png`，再到調整模式重新對文字框。
+對應：claude＝橘髮、codex＝白龍（GPT）、grok＝哥德雙馬尾、qwen＝紫髮。
+
+### 姿勢與規則（預設）
+
+由上往下，第一條符合的生效：
+
+1. 連不到 agentstat → `offline`（平常的圖，紙上寫「連不到家裡的貓窩」）
+2. agent 不在工作、最後活動超過 30 分鐘、10 秒內沒被點 → `idle`（03_idle，不顯示額度；點一下會醒來 10 秒）
+3. 紙上任一項已用 ≥ 90% → `critical`（02_quota_empty）
+4. agent 工作中 → `working`（01_working）
+5. 任一項已用 ≥ 75% → `warning`（目前用平常的圖）
+6. 其他 → `normal`
 
 ### 換圖
 
-每個姿勢用一整張圖，換姿勢就是換整張。現在五個姿勢（normal、warning、critical、sleep、offline）都指向 `normal.png`；有新圖時放進資料夾，改 `poses` 裡那個姿勢的 `img` 即可，例如 `"critical": {"img": "cry.png"}`。新圖的紙位置不同時，在調整模式按 P 切到那個姿勢，按「切換專用／共用」給它自己的文字框再對位。
+每個姿勢用一整張圖，換姿勢就是換整張。直接覆蓋同名檔即可；要新增姿勢就放新圖，在 `poses` 加一筆、在 `rules` 加一條。三張有白紙的圖各有自己的文字框（`poses.<姿勢>.textBox`），在調整模式按 P 切到那個姿勢再對位。
 
 圖片格式：png、gif、webp、apng 直接用；`.webm`、`.mp4` 會自動循環、靜音播放。同一隻的每張圖用同一個尺寸（`size`）。
 
@@ -86,10 +100,10 @@ pets/
 | `hours` | `[1, 7]` | 現在時間在 1 點到 7 點之間（可跨午夜，如 `[23, 7]`） |
 | `not`、`any` | `{"not":{"clickedWithinSec":10}}` | 反向、任一成立 |
 
-例：深夜改成睡覺姿勢：
+例：深夜改成閒置姿勢：
 
 ```json
-{ "if": { "hours": [1, 7] }, "pose": "sleep" }
+{ "if": { "hours": [1, 7] }, "pose": "idle" }
 ```
 
 ### 新增一隻

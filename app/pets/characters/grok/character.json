@@ -27,15 +27,36 @@
     "normal": {
       "img": "normal.png"
     },
+    "working": {
+      "img": "01_working.png",
+      "textBox": {
+        "x": 716,
+        "y": 726,
+        "w": 586,
+        "h": 260,
+        "rotate": 0,
+        "fontSize": 46,
+        "color": "#2f2a45"
+      }
+    },
     "warning": {
       "img": "normal.png"
     },
     "critical": {
-      "img": "normal.png"
+      "img": "02_quota_empty.png",
+      "textBox": {
+        "x": 580,
+        "y": 730,
+        "w": 646,
+        "h": 264,
+        "rotate": 0,
+        "fontSize": 46,
+        "color": "#2f2a45"
+      }
     },
-    "sleep": {
-      "img": "normal.png",
-      "text": "睡覺中 zzz"
+    "idle": {
+      "img": "03_idle.png",
+      "showQuota": false
     },
     "offline": {
       "img": "normal.png",
@@ -52,21 +73,29 @@
     {
       "if": {
         "agentState": [
+          "idle",
           "sleeping",
-          "offline"
+          "offline",
+          "unknown"
         ],
         "idleSecAtLeast": 1800,
         "not": {
           "clickedWithinSec": 10
         }
       },
-      "pose": "sleep"
+      "pose": "idle"
     },
     {
       "if": {
         "severity": "critical"
       },
       "pose": "critical"
+    },
+    {
+      "if": {
+        "agentState": "working"
+      },
+      "pose": "working"
     },
     {
       "if": {
@@ -95,11 +124,15 @@
       "用光光了",
       "下週見"
     ],
-    "sleep": [
-      "zzz…"
-    ],
     "offline": [
       "連不上…"
+    ],
+    "working": [
+      "查資料中",
+      "忙著呢"
+    ],
+    "idle": [
+      "（撐著臉發呆）"
     ]
   },
   "offset": {
