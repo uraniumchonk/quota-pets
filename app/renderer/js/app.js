@@ -1,0 +1,131 @@
+// Boot, repaint loop, click / drag / right-click, speech bubbles.
+window.QP = window.QP || {};
+
+const PANEL_H = 150, PANEL_MIN_W = 520;
+
+class App {
+  constructor() {
+    this.view = new QP.View(document.getElementById('rail'));
+    this.editor = new QP.Editor(this);
+    this.forcePose = {};      // index -> pose name (adjust-mode preview, click reactions)
+    this.data = {};
+  }
+
+  async boot() {
+    const { cfg, data, editing } = await host.init();
+    this.setConfig(cfg); this.data = data || {};
+    host.on('config', c => this.setConfig(c));
+    host.on('data', d => { this.data = d; this.tick(); });
+    host.on('editing', on => (on ? this.editor.start() : this.editor.stop(), this.relayout()));
+    if (editing) this.editor.start();
+    this.bindPointer();
+    setInterval(() => this.tick(), 1000);
+    this.scheduleChatter();
+    this.tick();
+  }
+
+  setConfig(cfg) {
+    this.cfg = cfg;
+    this.view.build(cfg);
+    this.relayout();
+    if (QP.editing) this.editor.render();
+  }
+
+  relayout() {
+    this.view.placeAll();
+    this.tick();
+    const lay = this.view.lay;
+    const w = QP.editing ? Math.max(lay.width, PANEL_MIN_W) : lay.width;
+    const h = lay.height + (QP.editing ? PANEL_H : 0);
+    document.getElementById('panel').style.top = lay.height + 'px';
+    host.size(w, h);
+  }
+
+  poseOf(i) {
+    if (this.forcePose[i]) return this.forcePose[i];
+    return QP.pickPose(this.cfg.chars[i], this.ctxOf(i));
+  }
+
+  ctxOf(i) {
+    const ctx = QP.buildContext(this.cfg.chars[i], this.data, this.cfg, Date.now());
+    ctx.clickedAgo = this.clickedAt && this.clickedAt[i] ? (Date.now() - this.clickedAt[i]) / 1000 : null;
+    return ctx;
+  }
+
+  tick() {
+    if (!this.cfg) return;
+    this.cfg.chars.forEach((ch, i) => {
+      const ctx = this.ctxOf(i);
+      const name = this.forcePose[i] || QP.pickPose(ch, ctx);
+      this.view.paint(i, QP.resolvePose(ch, name), ctx);
+      this.view.els[i].lastPose = name;
+    });
+  }
+
+  say(i) {
+    const ch = this.cfg.chars[i];
+    const lines = (ch.lines || {})[this.view.els[i].lastPose] || (ch.lines || {}).normal || [];
+    if (lines.length) this.view.say(i, lines[Math.floor(Math.random() * lines.length)], (this.cfg.bubble || {}).showSec);
+  }
+
+  react(i) {
+    const c = this.cfg.chars[i].click || {};
+    (this.clickedAt = this.clickedAt || {})[i] = Date.now();
+    this.tick();
+    if (c.say !== false) this.say(i);
+    if (c.pose) {
+      this.forcePose[i] = c.pose; this.tick();
+      setTimeout(() => { if (this.forcePose[i] === c.pose) { delete this.forcePose[i]; this.tick(); } }, c.ms || 1500);
+    }
+  }
+
+  scheduleChatter() {
+    const b = this.cfg.bubble || {};
+    const [a, z] = b.autoSec || [45, 110];
+    setTimeout(() => {
+      if (b.enabled !== false && !QP.editing && this.cfg.chars.length) this.say(Math.floor(Math.random() * this.cfg.chars.length));
+      this.scheduleChatter();
+    }, (a + Math.random() * (z - a)) * 1000);
+  }
+
+  save(lock) { host.save(this.cfg, { lock }); if (lock) this.editor.stop(); }
+  cancelEdit() { this.editor.stop(); host.edit(false); }
+
+  bindPointer() {
+    let over = false, down = null;
+    document.addEventListener('mousemove', e => {
+      const hit = !!e.target.closest('.hit, #panel');
+      if (hit !== over) { over = hit; host.hit(hit); }
+    });
+    document.addEventListener('mouseleave', () => { over = false; host.hit(false); });
+    document.addEventListener('contextmenu', e => { e.preventDefault(); host.menu(); });
+
+    document.addEventListener('pointerdown', e => {
+      if (e.button !== 0) return;
+      const el = e.target.closest('.tb, .frame, .ledge');
+      if (!el && !(QP.editing && e.target.closest('#rail'))) return;
+      if (e.target.closest('#panel')) return;
+      const i = el && el.dataset.i != null ? +el.dataset.i : this.editor.sel.i;
+      const part = el ? el.dataset.part : 'all';
+      down = { x: e.screenX, y: e.screenY, i, part, moved: false, dragging: false };
+      if (QP.editing) this.editor.select(i, part);
+      e.target.setPointerCapture && e.target.setPointerCapture(e.pointerId);
+    });
+    document.addEventListener('pointermove', e => {
+      if (!down) return;
+      const dx = e.screenX - down.x, dy = e.screenY - down.y;
+      if (!down.moved && Math.hypot(dx, dy) < 4) return;
+      down.moved = true;
+      if (QP.editing) { this.editor.dragBy(dx, dy); down.x = e.screenX; down.y = e.screenY; }
+      else if (!down.dragging && !this.cfg.rail.locked) { down.dragging = true; document.body.classList.add('dragging'); host.dragStart(); }
+    });
+    document.addEventListener('pointerup', () => {
+      if (!down) return;
+      if (down.dragging) { host.dragEnd(); document.body.classList.remove('dragging'); }
+      else if (!down.moved && !QP.editing && down.i != null) this.react(down.i);
+      down = null;
+    });
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => { QP.app = new App(); QP.app.boot(); });

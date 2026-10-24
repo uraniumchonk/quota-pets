@@ -1,0 +1,41 @@
+{
+  "server": "http://meowhome.local:10026",
+  "pollQuotaSec": 60,
+  "pollAgentsSec": 20,
+  "thresholds": {
+    "warning": 75,
+    "critical": 90
+  },
+  "characters": [
+    "claude",
+    "codex",
+    "grok",
+    "qwen"
+  ],
+  "rail": {
+    "anchor": "top-center",
+    "x": 0,
+    "y": 0,
+    "shiftY": 0,
+    "gap": -14,
+    "scale": 0.56,
+    "locked": false,
+    "ledge": {
+      "show": true,
+      "img": null,
+      "y": 290,
+      "height": 44,
+      "overhang": 32,
+      "color": "#f7d9e6",
+      "edge": "#3a3550"
+    }
+  },
+  "bubble": {
+    "enabled": true,
+    "autoSec": [
+      45,
+      110
+    ],
+    "showSec": 5
+  }
+}

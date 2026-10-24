@@ -1,0 +1,8 @@
+{
+  "name": "quota-pets",
+  "productName": "額度小人",
+  "version": "0.1.0",
+  "description": "Desktop quota pets reading agentstat",
+  "main": "main.cjs",
+  "private": true
+}

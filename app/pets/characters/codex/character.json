@@ -1,0 +1,114 @@
+{
+  "name": "Codex 娘",
+  "size": {
+    "w": 360,
+    "h": 440
+  },
+  "scale": 1,
+  "offset": {
+    "x": 0,
+    "y": 0
+  },
+  "agent": "cli:codex",
+  "quota": [
+    {
+      "provider": "codex",
+      "window": "7d",
+      "label": "週"
+    }
+  ],
+  "footer": "reset",
+  "textBox": {
+    "x": 74,
+    "y": 322,
+    "w": 212,
+    "h": 92,
+    "rotate": 0,
+    "fontSize": 20,
+    "color": "#2f2a45"
+  },
+  "poses": {
+    "normal": {
+      "img": "normal.png",
+      "front": "front.png"
+    },
+    "warning": {
+      "img": "warning.png",
+      "front": "front.png"
+    },
+    "critical": {
+      "img": "critical.png",
+      "front": "front.png"
+    },
+    "sleep": {
+      "img": "sleep.gif",
+      "front": "sleep_front.png",
+      "showQuota": false
+    },
+    "offline": {
+      "img": "warning.png",
+      "front": "front.png",
+      "text": "連不到家裡的貓窩"
+    }
+  },
+  "rules": [
+    {
+      "if": {
+        "source": "offline"
+      },
+      "pose": "offline"
+    },
+    {
+      "if": {
+        "agentState": [
+          "sleeping",
+          "offline"
+        ],
+        "idleSecAtLeast": 1800,
+        "not": {
+          "clickedWithinSec": 10
+        }
+      },
+      "pose": "sleep"
+    },
+    {
+      "if": {
+        "severity": "critical"
+      },
+      "pose": "critical"
+    },
+    {
+      "if": {
+        "severity": "warning"
+      },
+      "pose": "warning"
+    },
+    {
+      "pose": "normal"
+    }
+  ],
+  "click": {
+    "say": true,
+    "pose": null,
+    "ms": 1500
+  },
+  "lines": {
+    "normal": [
+      "要寫什麼？",
+      "Codex 待命中"
+    ],
+    "warning": [
+      "這週用了不少喔"
+    ],
+    "critical": [
+      "這週沒了…",
+      "等提前重置！"
+    ],
+    "sleep": [
+      "zzz…"
+    ],
+    "offline": [
+      "連不上…"
+    ]
+  }
+}

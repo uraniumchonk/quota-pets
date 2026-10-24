@@ -1,0 +1,134 @@
+{
+  "name": "Claude 娘",
+  "size": {
+    "w": 360,
+    "h": 440
+  },
+  "scale": 1,
+  "offset": {
+    "x": 0,
+    "y": 0
+  },
+  "agent": "cli:claude",
+  "quota": [
+    {
+      "provider": "claude",
+      "window": "5h",
+      "label": "主 5h"
+    },
+    {
+      "provider": "claude",
+      "window": "7d",
+      "label": "主 7d"
+    },
+    {
+      "provider": "claude2",
+      "window": "5h",
+      "label": "副 5h"
+    },
+    {
+      "provider": "claude2",
+      "window": "7d",
+      "label": "副 7d"
+    }
+  ],
+  "footer": "reset",
+  "textBox": {
+    "x": 74,
+    "y": 322,
+    "w": 212,
+    "h": 92,
+    "rotate": 0,
+    "fontSize": 20,
+    "color": "#2f2a45"
+  },
+  "poses": {
+    "normal": {
+      "img": "normal.png",
+      "front": "front.png"
+    },
+    "warning": {
+      "img": "warning.png",
+      "front": "front.png"
+    },
+    "critical": {
+      "img": "critical.png",
+      "front": "front.png"
+    },
+    "sleep": {
+      "img": "sleep.gif",
+      "front": "sleep_front.png",
+      "showQuota": false
+    },
+    "offline": {
+      "img": "warning.png",
+      "front": "front.png",
+      "text": "連不到家裡的貓窩"
+    }
+  },
+  "rules": [
+    {
+      "if": {
+        "source": "offline"
+      },
+      "pose": "offline"
+    },
+    {
+      "if": {
+        "agentState": [
+          "sleeping",
+          "offline"
+        ],
+        "idleSecAtLeast": 1800,
+        "not": {
+          "clickedWithinSec": 10
+        }
+      },
+      "pose": "sleep"
+    },
+    {
+      "if": {
+        "severity": "critical"
+      },
+      "pose": "critical"
+    },
+    {
+      "if": {
+        "severity": "warning"
+      },
+      "pose": "warning"
+    },
+    {
+      "pose": "normal"
+    }
+  ],
+  "click": {
+    "say": true,
+    "pose": null,
+    "ms": 1500
+  },
+  "lines": {
+    "normal": [
+      "今天也一起開工吧",
+      "額度還很多喔",
+      "要喝水喔"
+    ],
+    "warning": [
+      "省著點用…",
+      "7 天的快見底了",
+      "粗活交給 coder？"
+    ],
+    "critical": [
+      "沒了 QQ",
+      "等重置嘛…",
+      "給我買重置卡！"
+    ],
+    "sleep": [
+      "zzz…",
+      "（睡著了）"
+    ],
+    "offline": [
+      "家裡連不上…"
+    ]
+  }
+}

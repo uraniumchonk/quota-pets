@@ -1,0 +1,107 @@
+{
+  "name": "Qwen 娘（本地 coder）",
+  "size": {
+    "w": 360,
+    "h": 440
+  },
+  "scale": 1,
+  "offset": {
+    "x": 0,
+    "y": 0
+  },
+  "agent": "meowchat:coder",
+  "quota": [],
+  "footer": "state",
+  "textBox": {
+    "x": 74,
+    "y": 322,
+    "w": 212,
+    "h": 92,
+    "rotate": 0,
+    "fontSize": 20,
+    "color": "#2f2a45"
+  },
+  "poses": {
+    "normal": {
+      "img": "normal.png",
+      "front": "front.png"
+    },
+    "warning": {
+      "img": "warning.png",
+      "front": "front.png"
+    },
+    "critical": {
+      "img": "critical.png",
+      "front": "front.png"
+    },
+    "sleep": {
+      "img": "sleep.gif",
+      "front": "sleep_front.png",
+      "showQuota": false
+    },
+    "offline": {
+      "img": "warning.png",
+      "front": "front.png",
+      "text": "連不到家裡的貓窩"
+    }
+  },
+  "rules": [
+    {
+      "if": {
+        "source": "offline"
+      },
+      "pose": "offline"
+    },
+    {
+      "if": {
+        "agentState": [
+          "sleeping",
+          "offline"
+        ],
+        "idleSecAtLeast": 1800,
+        "not": {
+          "clickedWithinSec": 10
+        }
+      },
+      "pose": "sleep"
+    },
+    {
+      "if": {
+        "severity": "critical"
+      },
+      "pose": "critical"
+    },
+    {
+      "if": {
+        "severity": "warning"
+      },
+      "pose": "warning"
+    },
+    {
+      "pose": "normal"
+    }
+  ],
+  "click": {
+    "say": true,
+    "pose": null,
+    "ms": 1500
+  },
+  "lines": {
+    "normal": [
+      "本地的不用額度！",
+      "粗活交給我"
+    ],
+    "warning": [
+      "…"
+    ],
+    "critical": [
+      "…"
+    ],
+    "sleep": [
+      "zzz…"
+    ],
+    "offline": [
+      "連不上…"
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "quota-pets-dev",
+  "private": true,
+  "scripts": { "start": "electron app" },
+  "devDependencies": { "electron": "44.7.0" }
+}
