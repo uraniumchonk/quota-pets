@@ -1,4 +1,4 @@
-// Quota pets: a transparent always-on-top strip of characters that show agentstat quota.
+// Quota pets: a transparent always-on-top strip of characters that show AI subscription quota.
 // Main process owns the window, the pets folder (config + art), polling and the menus.
 const { app, BrowserWindow, ipcMain, screen, Menu, Tray, shell, nativeImage, globalShortcut } = require('electron');
 const fs = require('fs');
@@ -157,13 +157,13 @@ function demoData() {
       codex: { ok: true, windows: [win('7d', used[4], 90)] },
       grok: { ok: true, windows: [win('7d', used[5], 50)] },
     },
-    agents: [['cli:claude', 0], ['cli:codex', 1], ['cli:grok', 2], ['meowchat:coder', 3]].map(([id, i]) =>
+    agents: [['cli:claude', 0], ['cli:codex', 1], ['cli:grok', 2], ['cli:qwen', 3]].map(([id, i]) =>
       ({ id, state: state[i], last_activity_age_sec: age(state[i]), doing: state[i] === 'working' ? 'demo task' : '' })),
   };
 }
 const isDemo = () => !cfg.server || cfg.server === 'demo';
 
-// ---------- agentstat ----------
+// ---------- data server ----------
 async function getJson(url) {
   const ctl = new AbortController();
   const t = setTimeout(() => ctl.abort(), 8000);

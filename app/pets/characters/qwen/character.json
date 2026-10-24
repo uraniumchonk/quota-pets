@@ -8,7 +8,7 @@
     "h": 1086
   },
   "scale": 1,
-  "agent": "meowchat:coder",
+  "agent": "cli:qwen",
   "quota": [],
   "footer": "state",
   "textBox": {
@@ -58,7 +58,7 @@
     "offline": {
       "img": "normal.png",
       "text": {
-        "zh-TW": "連不到家裡的貓窩",
+        "zh-TW": "連不到伺服器",
         "en": "Can't reach the server"
       }
     }

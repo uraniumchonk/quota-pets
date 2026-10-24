@@ -1,4 +1,4 @@
-// Turns the raw agentstat payload into one context object per character.
+// Turns the raw data-server payload into one context object per character.
 // The context is what rules (rules.js) and the sign text (view.js) read.
 window.QP = window.QP || {};
 

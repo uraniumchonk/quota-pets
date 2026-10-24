@@ -19,7 +19,7 @@ if (!window.host) (function () {
       { id: 'cli:claude', state: 'working', last_activity_age_sec: 5 },
       { id: 'cli:codex', state: state === 'sleep' ? 'sleeping' : 'idle', last_activity_age_sec: 4000 },
       { id: 'cli:grok', state: 'sleeping', last_activity_age_sec: state === 'sleep' ? 9000 : 600 },
-      { id: 'meowchat:coder', state: 'working', doing: 'Organize gallery-dl downloads', last_activity_age_sec: 20 },
+      { id: 'cli:qwen', state: 'working', doing: 'Writing unit tests', last_activity_age_sec: 20 },
     ],
   };
   async function loadCfg() {

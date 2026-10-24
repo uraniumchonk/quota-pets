@@ -33,7 +33,8 @@ app writes quota numbers onto that paper. Data comes from an HTTP server (`serve
 
 1. Read `docs/API.md`. Two GET endpoints: `/api/quota` and `/api/agents` (optional).
 2. Start from `tools/example_server.py`. Replace `load()` with real readings: each provider's
-   official usage or billing endpoint, or numbers the user enters.
+   official usage or billing endpoint, or numbers the user enters. It listens on 127.0.0.1; a
+   second argument sets the host (`0.0.0.0` serves other machines, without authentication).
 3. Keys must line up with the characters: `quota.<provider>` matches `quota[].provider` in a
    `character.json`, `windows[].id` matches `quota[].window`, `agents[].id` matches `agent`.
 4. Set `server` in the user's `%APPDATA%\額度小人\pets\config.json`. The app reloads on save.

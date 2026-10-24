@@ -1,8 +1,8 @@
 # Data API
 
 Set `server` in `pets/config.json` to a base URL. The app calls two endpoints with plain
-`GET` and expects JSON. Fields not listed here are ignored. Any language works; the
-reference server is the author's private `agentstat` service.
+`GET` and expects JSON. Fields not listed here are ignored. Any language works;
+`tools/example_server.py` is a minimal server to start from.
 
 ## `GET /api/quota` (every `pollQuotaSec`, default 60 s)
 
@@ -58,3 +58,9 @@ Called by the tray menu item "立即刷新額度" before re-reading `/api/quota`
 
 When `/api/quota` fails for 3 polling periods in a row, rules see `source: "offline"` and the
 default rules switch every character to the `offline` pose with the last known numbers.
+
+## Security
+
+The endpoints have no authentication and the app sends no credentials. Keep provider keys on
+the server, and serve it on localhost or a network you trust: anyone who can reach it can read
+your quota and the `doing` text.
