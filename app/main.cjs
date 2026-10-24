@@ -46,7 +46,7 @@ function installPets() {
 function carryOver(bak) {
   const oldTop = readJson(path.join(bak, 'config.json'));
   const top = readJson(path.join(PETS, 'config.json'));
-  for (const k of ['anchor', 'x', 'y', 'display', 'shiftY', 'gap', 'scale', 'locked']) if (oldTop.rail && k in oldTop.rail) top.rail[k] = oldTop.rail[k];
+  for (const k of ['anchor', 'x', 'y', 'display', 'shiftY', 'gap', 'scale', 'zoom', 'locked']) if (oldTop.rail && k in oldTop.rail) top.rail[k] = oldTop.rail[k];
   for (const k of ['bind', 'display', 'server']) {
     if (k === 'bind' && (oldTop.bundleVersion || 1) < 5) continue;   // v4 shipped an example binding
     if (k in oldTop) top[k] = oldTop[k];
@@ -291,6 +291,8 @@ function menu() {
   return Menu.buildFromTemplate([
     { label: editing ? '結束調整（不存）' : '調整位置…', click: () => setEditing(!editing) },
     { label: '鎖定位置', type: 'checkbox', checked: !!cfg.rail.locked, click: (m) => { cfg.rail.locked = m.checked; saveConfig(cfg); send('config', cfg); } },
+    { label: '大小', submenu: [50, 60, 70, 80, 90, 100, 120, 150].map(p => ({ label: p + '%', type: 'radio',
+        checked: Math.round((cfg.rail.zoom || 1) * 100) === p, click: () => send('zoom', p / 100) })) },
     { label: '綁定視窗', submenu: bindMenu() },
     { type: 'separator' },
     { label: '立即刷新額度', click: async () => {

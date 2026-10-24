@@ -16,10 +16,10 @@
     "anchor": "top-center",
     "x": 0,
     "y": 0,
-    "shiftY": 0,
+    "shiftY": -12,
     "gap": -36,
     "scale": 0.24,
-    "locked": false,
+    "locked": true,
     "ledge": {
       "show": false,
       "img": null,
@@ -28,7 +28,8 @@
       "overhang": 32,
       "color": "#f7d9e6",
       "edge": "#3a3550"
-    }
+    },
+    "zoom": 1
   },
   "bubble": {
     "enabled": true,
@@ -38,7 +39,7 @@
     ],
     "showSec": 5
   },
-  "bundleVersion": 6,
+  "bundleVersion": 7,
   "bind": {
     "enabled": false,
     "mode": "foreground",

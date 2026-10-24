@@ -20,6 +20,8 @@ class App {
     host.on('editing', on => (on ? this.editor.start() : this.editor.stop(), this.relayout()));
     if (editing) this.editor.start();
     this.bindPointer();
+    this.bindWheel();
+    host.on('zoom', z => this.setZoom(z));
     setInterval(() => this.tick(), 1000);
     this.scheduleChatter();
     this.tick();
@@ -35,10 +37,12 @@ class App {
   relayout() {
     this.view.placeAll();
     this.tick();
-    const lay = this.view.lay;
-    const w = QP.editing ? Math.max(lay.width, PANEL_MIN_W) : lay.width;
-    const h = lay.height + (QP.editing ? PANEL_H : 0);
-    document.getElementById('panel').style.top = lay.height + 'px';
+    const lay = this.view.lay, z = QP.zoom(this.cfg);
+    const rail = document.getElementById('rail');
+    rail.style.transform = `scale(${z})`;
+    const w = Math.max(lay.width * z, QP.editing ? PANEL_MIN_W : 0);
+    const h = lay.height * z + (QP.editing ? PANEL_H : 0);
+    document.getElementById('panel').style.top = lay.height * z + 'px';
     host.size(w, h);
   }
 
@@ -119,6 +123,23 @@ class App {
     return m.a[my * m.w + mx] > 40;
   }
 
+  // Ctrl + mouse wheel over a character: zoom the whole strip, saved shortly after
+  bindWheel() {
+    document.addEventListener('wheel', e => {
+      if (!e.ctrlKey || !this.hitAt(e.clientX, e.clientY)) return;
+      e.preventDefault();
+      this.setZoom(QP.zoom(this.cfg) + (e.deltaY < 0 ? 0.05 : -0.05));
+    }, { passive: false });
+  }
+
+  setZoom(z) {
+    this.cfg.rail.zoom = Math.round(Math.min(3, Math.max(0.3, z)) * 100) / 100;
+    this.relayout();
+    if (QP.editing) this.editor.render();
+    else { clearTimeout(this.zoomSave); this.zoomSave = setTimeout(() => host.save(this.cfg, {}), 500); }
+    this.view.say(0, `大小 ${Math.round(this.cfg.rail.zoom * 100)}%`, 1.5);
+  }
+
   bindPointer() {
     let over = false, down = null;
     document.addEventListener('mousemove', e => {
@@ -162,5 +183,7 @@ function decodeMask(v) {
   for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i);
   return { w: v.w, h: v.h, a };
 }
+
+QP.zoom = cfg => (cfg.rail && cfg.rail.zoom) || 1;
 
 window.addEventListener('DOMContentLoaded', () => { QP.app = new App(); QP.app.boot(); });

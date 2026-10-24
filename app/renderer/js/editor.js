@@ -64,7 +64,7 @@ QP.Editor = class {
     if (this.sel.part === 'text') { t.w = Math.max(10, t.w + dw); t.h = Math.max(10, t.h + dh); }
     else if (this.sel.part === 'ledge') { t.height = Math.max(2, t.height - dh); }
     else if (this.sel.part === 'img') { this.ch.scale = round2((this.ch.scale || 1) - dh * 0.01 + dw * 0.01); }
-    else { this.cfg.rail.scale = round2(this.cfg.rail.scale - dh * 0.01 + dw * 0.01); }
+    else { this.cfg.rail.zoom = round2(Math.min(3, Math.max(0.3, QP.zoom(this.cfg) - dh * 0.01))); }
     this.changed();
   }
 
@@ -119,6 +119,7 @@ QP.Editor = class {
 
   // mouse drag inside adjust mode; screen px are converted to the part's own units
   dragBy(dx, dy) {
+    const z = QP.zoom(this.cfg); dx /= z; dy /= z;
     const sl = this.app.view.lay.slots[this.sel.i];
     if (this.sel.part === 'text') this.move(dx / sl.s, dy / sl.s);
     else if (this.sel.part === 'ledge') this.move(dx / this.cfg.rail.scale, dy / this.cfg.rail.scale);
@@ -133,13 +134,13 @@ QP.Editor = class {
     if (part === 'img') vals = `x ${v(t.x)}　y ${v(t.y)}　大小 ${v(this.ch.scale || 1)}`;
     else if (part === 'text') vals = `x ${v(t.x)}　y ${v(t.y)}　寬 ${v(t.w)}　高 ${v(t.h)}　字 ${v(t.fontSize)}　轉 ${v(t.rotate || 0)}°`;
     else if (part === 'ledge') vals = `y ${v(t.y)}　厚 ${v(t.height)}　左右多出 ${v(t.overhang)}`;
-    else vals = `整排上下 ${v(t.shiftY || 0)}　間距 ${v(t.gap)}　縮放 ${v(t.scale)}`;
+    else vals = `整排上下 ${v(t.shiftY || 0)}　間距 ${v(t.gap)}　大小 ${Math.round(QP.zoom(this.cfg) * 100)}%`;
     const who = part === 'ledge' || part === 'all' ? '' : `${this.ch.name}・`;
     const keys = {
       img: '方向鍵 移動（Shift ×10）　Alt+↑↓ 大小',
       text: '方向鍵 移動　Alt+方向鍵 寬高　+ − 字級　[ ] 旋轉',
       ledge: '↑↓ 上下　←→ 左右多出　Alt+↑↓ 厚度',
-      all: '↑↓ 整排上下（負數＝頭伸出螢幕外）　←→ 間距　Alt+↑↓ 縮放',
+      all: '↑↓ 整排上下（負數＝頭伸出螢幕外）　←→ 間距　Alt+↑↓ 等比大小（1%，Shift 10%）',
     }[part];
     this.panel.innerHTML = `
       <div class="p-head"><b>${who}${names[part]}</b><span>${vals}</span></div>
