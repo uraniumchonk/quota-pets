@@ -1,3 +1,5 @@
 node_modules/
 dist/
 *.zip
+tools/quota.json
+tools/agents.json

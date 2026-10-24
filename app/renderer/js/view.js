@@ -1,7 +1,8 @@
 // Builds the rail (characters side by side, leaning on one ledge) and repaints it.
 // Layers per character, bottom to top: back frame (pose.img), ledge, front frame
-// (pose.front + sign text). Frames are drawn in image pixels and scaled by
-// rail.scale * character.scale, so textBox numbers stay valid when the size changes.
+// (pose.front + sign text). Config numbers for images, text boxes and the ledge are in image
+// pixels; layout multiplies them by rail.scale * character.scale * rail.zoom and sets real
+// pixel sizes (no CSS scale), so pictures and text are drawn sharp at every zoom.
 window.QP = window.QP || {};
 
 const BUBBLE_SPACE = 64;
@@ -9,25 +10,26 @@ const SEV_COLOR = { normal: 'var(--ok)', warning: 'var(--warn)', critical: 'var(
 
 // Ledge numbers are stored in image pixels (like textBox) and scaled with the rail.
 QP.ledgePx = function (r) {
-  const L = r.ledge || {}, k = r.scale || 1;
+  const L = r.ledge || {}, k = (r.scale || 1) * ((r.zoom) || 1);
   return { show: !!L.show, img: L.img, color: L.color, edge: L.edge, y: (L.y || 0) * k, height: (L.height || 0) * k, overhang: (L.overhang || 0) * k };
 };
 
 QP.layout = function (cfg) {
-  const r = cfg.rail;
+  const r = cfg.rail, z = r.zoom || 1;
   const L = QP.ledgePx(r);
   const pad = Math.max(0, L.show ? L.overhang : 0) + 4;
+  const gap = (r.gap || 0) * z, shiftY = (r.shiftY || 0) * z;
   let x = pad, bottom = 0;
   const slots = cfg.chars.map(ch => {
-    const s = r.scale * (ch.scale || 1);
+    const s = r.scale * (ch.scale || 1) * z;
     const w = ch.size.w * s, h = ch.size.h * s;
-    const slot = { x, w, h, s, left: x + (ch.offset.x || 0), top: (ch.offset.y || 0) + (r.shiftY || 0) };
+    const slot = { x, w, h, s, left: x + (ch.offset.x || 0) * z, top: (ch.offset.y || 0) * z + shiftY };
     bottom = Math.max(bottom, slot.top + h);
-    x += w + (r.gap || 0);
+    x += w + gap;
     return slot;
   });
-  const contentW = x - (r.gap || 0) + pad;
-  if (L.show) bottom = Math.max(bottom, L.y + (r.shiftY || 0) + L.height);
+  const contentW = x - gap + pad;
+  if (L.show) bottom = Math.max(bottom, L.y + shiftY + L.height);
   return { slots, pad, width: Math.ceil(contentW), height: Math.ceil(Math.max(bottom, 1) + BUBBLE_SPACE), bubbleTop: Math.ceil(bottom) + 4 };
 };
 
@@ -68,7 +70,7 @@ QP.View = class {
     this.ledge.hidden = !L.show;
     s.left = (this.lay.pad - L.overhang) + 'px';
     s.width = (this.lay.width - 2 * this.lay.pad + 2 * L.overhang) + 'px';
-    s.top = (L.y + (r.shiftY || 0)) + 'px';
+    s.top = (L.y + (r.shiftY || 0) * (r.zoom || 1)) + 'px';
     s.height = L.height + 'px';
     s.background = L.img ? `url("${L.img}") center/100% 100%` : L.color;
     s.borderColor = L.img ? 'transparent' : L.edge;
@@ -82,8 +84,8 @@ QP.View = class {
     this.cfg.chars.forEach((ch, i) => {
       const sl = this.lay.slots[i], e = this.els[i];
       for (const f of [e.back, e.front]) {
-        f.style.width = ch.size.w + 'px'; f.style.height = ch.size.h + 'px';
-        f.style.transform = `translate(${sl.left}px, ${sl.top}px) scale(${sl.s})`;
+        f.style.width = sl.w + 'px'; f.style.height = sl.h + 'px';
+        f.style.transform = `translate(${sl.left}px, ${sl.top}px)`;
       }
       e.bubble.style.left = (sl.x + sl.w / 2) + 'px';
       e.bubble.style.top = this.lay.bubbleTop + 'px';
@@ -97,18 +99,18 @@ QP.View = class {
     setMedia(e, 'front', ch.base, pose.front, this.cfg.version);
     e.back.dataset.anim = e.front.dataset.anim = pose.anim;
 
-    const t = pose.textBox, st = e.tb.style;
-    st.left = t.x + 'px'; st.top = t.y + 'px'; st.width = t.w + 'px'; st.height = t.h + 'px';
+    const t = pose.textBox, st = e.tb.style, k = this.lay.slots[i].s;
+    st.left = t.x * k + 'px'; st.top = t.y * k + 'px'; st.width = t.w * k + 'px'; st.height = t.h * k + 'px';
     st.transform = `rotate(${t.rotate || 0}deg)`;
     st.color = t.color || '';
-    st.fontSize = (t.fontSize || 20) + 'px';
+    st.fontSize = (t.fontSize || 20) * k + 'px';
     if (t.font) st.fontFamily = t.font;
 
     const html = pose.text ? `<div class="tb-msg">${esc(pose.text)}</div>` : pose.showQuota ? signHtml(ch, ctx, this.cfg.display) : '';
     e.tb.hidden = !html && !QP.editing;
     if (html !== e.html) { e.inner.innerHTML = html; e.html = html; fit(e); }
-    else if (e.fitFor !== `${t.w}x${t.h}x${t.fontSize}`) fit(e);
-    e.fitFor = `${t.w}x${t.h}x${t.fontSize}`;
+    else if (e.fitFor !== `${t.w}x${t.h}x${t.fontSize}x${k}`) fit(e);
+    e.fitFor = `${t.w}x${t.h}x${t.fontSize}x${k}`;
   }
 
   say(i, text, sec) {

@@ -37,12 +37,10 @@ class App {
   relayout() {
     this.view.placeAll();
     this.tick();
-    const lay = this.view.lay, z = QP.zoom(this.cfg);
-    const rail = document.getElementById('rail');
-    rail.style.transform = `scale(${z})`;
-    const w = Math.max(lay.width * z, QP.editing ? PANEL_MIN_W : 0);
-    const h = lay.height * z + (QP.editing ? PANEL_H : 0);
-    document.getElementById('panel').style.top = lay.height * z + 'px';
+    const lay = this.view.lay;
+    const w = Math.max(lay.width, QP.editing ? PANEL_MIN_W : 0);
+    const h = lay.height + (QP.editing ? PANEL_H : 0);
+    document.getElementById('panel').style.top = lay.height + 'px';
     host.size(w, h);
   }
 

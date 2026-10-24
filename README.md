@@ -13,6 +13,10 @@ On a real desktop, over Windows Terminal:
 
 ![quota-pets on a desktop](docs/screenshot.png)
 
+> **Something not working, or want it changed?** Let your coding agent do it. The repo ships an
+> [AGENTS.md](AGENTS.md) that tells an agent how to set up a data backend and how to change
+> characters, poses, rules and layout.
+
 ## Install
 
 1. Download `quota-pets-win-x64.zip` from Releases and unzip it anywhere.
@@ -30,7 +34,7 @@ about 0.3 s.
 - `"demo"` (default): no network; cycles through calm / busy / empty / idle every 15 s.
 - A base URL such as `"http://localhost:10026"`: reads `/api/quota` every 60 s and
   `/api/agents` every 20 s. The JSON format is in [docs/API.md](docs/API.md); a small
-  server in any language can provide it.
+  server in any language can provide it. `tools/example_server.py` is a starting point.
 
 ## Using it
 

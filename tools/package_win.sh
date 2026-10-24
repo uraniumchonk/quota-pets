@@ -13,7 +13,7 @@ mv "$OUT/electron.exe" "$OUT/QuotaPets.exe"
 rm -f "$OUT/resources/default_app.asar"
 mkdir -p "$OUT/resources/app"
 cp -r app/main.cjs app/winbind.cjs app/preload.cjs app/package.json app/icon.png app/renderer app/pets "$OUT/resources/app/"
-cp README.zh-TW.md "$OUT/說明.md"; cp README.md LICENSE ART-LICENSE.md "$OUT/"
+cp README.zh-TW.md "$OUT/說明.md"; cp README.md LICENSE ART-LICENSE.md AGENTS.md "$OUT/"
 if [ -f dist/rcedit-x64.exe ] && command -v wine >/dev/null; then
   cp app/icon.ico dist/icon.ico
   WINEDEBUG=-all wine dist/rcedit-x64.exe "$OUT/QuotaPets.exe" --set-icon dist/icon.ico \

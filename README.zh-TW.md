@@ -6,12 +6,14 @@
 
 Windows 桌面最上層的一排 Q 版小人，每隻抱著一張白紙，紙上寫自己家族（Claude、GPT／Codex、Grok、Qwen）的訂閱額度。
 
+> **有問題或想改什麼，讓你的 agent 自己改。** 專案附帶 [AGENTS.md](AGENTS.md)，agent 看了就知道後端該怎麼搭、角色／姿勢／規則／版面怎麼改。
+
 ## 資料來源
 
 `config.json` 的 `server`：
 
 - `"demo"`（預設）：不連線，每 15 秒輪流示範平常、快用完、見底、閒置。
-- 你的伺服器網址，例如 `"http://localhost:10026"`：每 60 秒讀 `/api/quota`、每 20 秒讀 `/api/agents`。回傳格式見 [docs/API.md](docs/API.md)，任何語言寫個小服務照格式回 JSON 就能接。
+- 你的伺服器網址，例如 `"http://localhost:10026"`：每 60 秒讀 `/api/quota`、每 20 秒讀 `/api/agents`。回傳格式見 [docs/API.md](docs/API.md)，任何語言寫個小服務照格式回 JSON 就能接；`tools/example_server.py` 可以直接拿來改。
 
 ## 啟動
 

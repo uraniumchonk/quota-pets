@@ -5,7 +5,7 @@
   --num: "Segoe UI", "Noto Sans", sans-serif;
 }
 html, body { margin: 0; background: transparent; overflow: hidden; user-select: none; font-family: var(--font); }
-#rail { position: relative; transform-origin: 0 0; }
+#rail { position: relative; }
 
 .frame { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
 .frame.back { z-index: 1; }

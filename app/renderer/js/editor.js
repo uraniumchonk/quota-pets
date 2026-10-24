@@ -119,11 +119,10 @@ QP.Editor = class {
 
   // mouse drag inside adjust mode; screen px are converted to the part's own units
   dragBy(dx, dy) {
-    const z = QP.zoom(this.cfg); dx /= z; dy /= z;
-    const sl = this.app.view.lay.slots[this.sel.i];
+    const z = QP.zoom(this.cfg), sl = this.app.view.lay.slots[this.sel.i];
     if (this.sel.part === 'text') this.move(dx / sl.s, dy / sl.s);
-    else if (this.sel.part === 'ledge') this.move(dx / this.cfg.rail.scale, dy / this.cfg.rail.scale);
-    else this.move(dx, dy);
+    else if (this.sel.part === 'ledge') this.move(dx / (this.cfg.rail.scale * z), dy / (this.cfg.rail.scale * z));
+    else this.move(dx / z, dy / z);
   }
 
   render() {
