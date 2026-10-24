@@ -91,10 +91,37 @@ class App {
   save(lock) { host.save(this.cfg, { lock }); if (lock) this.editor.stop(); }
   cancelEdit() { this.editor.stop(); host.edit(false); }
 
+  // What is under a point: sign text, ledge, or an opaque pixel of a character image.
+  // Overlapping frames are checked top to bottom, so a transparent corner passes to the one below.
+  hitAt(x, y) {
+    for (const el of document.elementsFromPoint(x, y)) {
+      if (el.closest('#panel')) return { part: 'panel' };
+      const tb = el.closest('.tb');
+      if (tb && !tb.hidden && tb.innerHTML) return { i: +tb.dataset.i, part: 'text' };
+      if (el.classList.contains('ledge') && !el.hidden) return { i: this.editor.sel.i, part: 'ledge' };
+      const f = el.closest('.frame');
+      if (f && this.opaqueAt(f, x, y)) return { i: +f.dataset.i, part: 'img' };
+    }
+    return null;
+  }
+
+  opaqueAt(frame, x, y) {
+    const e = this.view.els[+frame.dataset.i], layer = frame.classList.contains('front') ? 'front' : 'back';
+    const url = e.urls && e.urls[layer];
+    if (!url) return false;
+    const m = QP.masks[url];
+    if (m === undefined) { QP.masks[url] = null; host.mask(url).then(v => { QP.masks[url] = v ? decodeMask(v) : false; }); return true; }
+    if (!m) return true;                 // no mask available: whole box counts
+    const r = frame.getBoundingClientRect();
+    const mx = Math.floor((x - r.left) / r.width * m.w), my = Math.floor((y - r.top) / r.height * m.h);
+    if (mx < 0 || my < 0 || mx >= m.w || my >= m.h) return false;
+    return m.a[my * m.w + mx] > 40;
+  }
+
   bindPointer() {
     let over = false, down = null;
     document.addEventListener('mousemove', e => {
-      const hit = !!e.target.closest('.hit, #panel');
+      const hit = !!this.hitAt(e.clientX, e.clientY);
       if (hit !== over) { over = hit; host.hit(hit); }
     });
     document.addEventListener('mouseleave', () => { over = false; host.hit(false); });
@@ -102,11 +129,11 @@ class App {
 
     document.addEventListener('pointerdown', e => {
       if (e.button !== 0) return;
-      const el = e.target.closest('.tb, .frame, .ledge');
-      if (!el && !(QP.editing && e.target.closest('#rail'))) return;
-      if (e.target.closest('#panel')) return;
-      const i = el && el.dataset.i != null ? +el.dataset.i : this.editor.sel.i;
-      const part = el ? el.dataset.part : 'all';
+      const h = this.hitAt(e.clientX, e.clientY);
+      if (h && h.part === 'panel') return;
+      if (!h && !QP.editing) return;
+      const i = h ? h.i : this.editor.sel.i;
+      const part = h ? h.part : 'all';
       down = { x: e.screenX, y: e.screenY, i, part, moved: false, dragging: false };
       if (QP.editing) this.editor.select(i, part);
       e.target.setPointerCapture && e.target.setPointerCapture(e.pointerId);
@@ -126,6 +153,13 @@ class App {
       down = null;
     });
   }
+}
+
+QP.masks = {};
+function decodeMask(v) {
+  const bin = atob(v.alpha), a = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i);
+  return { w: v.w, h: v.h, a };
 }
 
 window.addEventListener('DOMContentLoaded', () => { QP.app = new App(); QP.app.boot(); });

@@ -1,14 +1,10 @@
 {
-  "name": "Claude 娘",
+  "name": "Claude（橘髮）",
   "size": {
-    "w": 360,
-    "h": 440
+    "w": 1448,
+    "h": 1086
   },
   "scale": 1,
-  "offset": {
-    "x": 0,
-    "y": 0
-  },
   "agent": "cli:claude",
   "quota": [
     {
@@ -34,35 +30,30 @@
   ],
   "footer": "reset",
   "textBox": {
-    "x": 74,
-    "y": 322,
-    "w": 212,
-    "h": 92,
+    "x": 210,
+    "y": 738,
+    "w": 674,
+    "h": 236,
     "rotate": 0,
-    "fontSize": 20,
+    "fontSize": 46,
     "color": "#2f2a45"
   },
   "poses": {
     "normal": {
-      "img": "normal.png",
-      "front": "front.png"
+      "img": "normal.png"
     },
     "warning": {
-      "img": "warning.png",
-      "front": "front.png"
+      "img": "normal.png"
     },
     "critical": {
-      "img": "critical.png",
-      "front": "front.png"
+      "img": "normal.png"
     },
     "sleep": {
-      "img": "sleep.gif",
-      "front": "sleep_front.png",
-      "showQuota": false
+      "img": "normal.png",
+      "text": "睡覺中 zzz"
     },
     "offline": {
-      "img": "warning.png",
-      "front": "front.png",
+      "img": "normal.png",
       "text": "連不到家裡的貓窩"
     }
   },
@@ -130,5 +121,9 @@
     "offline": [
       "家裡連不上…"
     ]
+  },
+  "offset": {
+    "x": 0,
+    "y": 0
   }
 }

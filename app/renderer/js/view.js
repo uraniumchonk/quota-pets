@@ -130,8 +130,10 @@ function setMedia(e, layer, base, file, ver) {
   if (e.media[layer] === file) return;
   e.media[layer] = file;
   host.querySelectorAll('.media').forEach(n => n.remove());
+  if (e.urls) e.urls[layer] = null;
   if (!file) return;
   const url = base + file + '?v=' + ver;
+  (e.urls = e.urls || {})[layer] = url;
   const el = /\.(webm|mp4)$/i.test(file) ? Object.assign(document.createElement('video'), { autoplay: true, loop: true, muted: true, playsInline: true }) : document.createElement('img');
   el.className = 'media'; el.src = url; el.draggable = false;
   host.prepend(el);

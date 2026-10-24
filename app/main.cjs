@@ -3,7 +3,7 @@
 const { app, BrowserWindow, ipcMain, screen, Menu, Tray, shell, nativeImage } = require('electron');
 const fs = require('fs');
 const path = require('path');
-const { pathToFileURL } = require('url');
+const { pathToFileURL, fileURLToPath } = require('url');
 
 const BUNDLED = path.join(__dirname, 'pets');
 let PETS;                       // user copy, editable: %APPDATA%/quota-pets/pets
@@ -24,6 +24,28 @@ function copyDir(src, dst) {
   }
 }
 function readJson(p) { return JSON.parse(fs.readFileSync(p, 'utf8')); }
+
+// A newer bundle (config.json bundleVersion) replaces the user's copy; the old copy is kept as pets.bak-<time>.
+function installPets() {
+  const bundled = readJson(path.join(BUNDLED, 'config.json')).bundleVersion || 1;
+  let mine = 0;
+  try { mine = readJson(path.join(PETS, 'config.json')).bundleVersion || 1; } catch {}
+  if (mine && mine < bundled) fs.renameSync(PETS, PETS + '.bak-' + new Date().toISOString().replace(/[:.]/g, '-'));
+  copyDir(BUNDLED, PETS);
+}
+
+// Alpha mask of an image at 1/8 size, so clicks on transparent pixels fall through.
+const MASK_STEP = 8;
+function alphaMask(url) {
+  const img = nativeImage.createFromPath(fileURLToPath(url.split('?')[0]));
+  if (img.isEmpty()) return null;
+  const { width, height } = img.getSize();
+  const w = Math.max(1, Math.round(width / MASK_STEP)), h = Math.max(1, Math.round(height / MASK_STEP));
+  const bmp = img.resize({ width: w, height: h, quality: 'good' }).toBitmap();   // BGRA
+  const a = new Uint8Array(w * h);
+  for (let i = 0; i < w * h; i++) a[i] = bmp[i * 4 + 3];
+  return { w, h, alpha: Buffer.from(a).toString('base64') };
+}
 
 function loadConfig() {
   const c = readJson(path.join(PETS, 'config.json'));
@@ -173,7 +195,7 @@ function setEditing(on) {
 // ---------- boot ----------
 app.whenReady().then(() => {
   PETS = path.join(app.getPath('userData'), 'pets');
-  copyDir(BUNDLED, PETS);
+  installPets();
   cfg = loadConfig();
 
   win = new BrowserWindow({
@@ -195,6 +217,7 @@ app.whenReady().then(() => {
   tray.on('right-click', () => tray.popUpContextMenu(menu()));
 
   ipcMain.handle('init', () => ({ cfg, data, editing }));
+  ipcMain.handle('mask', (_e, url) => { try { return alphaMask(url); } catch { return null; } });
   ipcMain.on('size', (_e, w, h) => place([Math.ceil(w), Math.ceil(h)]));
   ipcMain.on('hit', (_e, over) => { if (!editing) win.setIgnoreMouseEvents(!over, { forward: true }); });
   ipcMain.on('menu', () => menu().popup({ window: win }));

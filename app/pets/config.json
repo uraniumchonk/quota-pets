@@ -17,11 +17,11 @@
     "x": 0,
     "y": 0,
     "shiftY": 0,
-    "gap": -14,
-    "scale": 0.56,
+    "gap": -36,
+    "scale": 0.24,
     "locked": false,
     "ledge": {
-      "show": true,
+      "show": false,
       "img": null,
       "y": 290,
       "height": 44,
@@ -37,5 +37,6 @@
       110
     ],
     "showSec": 5
-  }
+  },
+  "bundleVersion": 2
 }

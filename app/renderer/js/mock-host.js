@@ -37,6 +37,7 @@ if (!window.host) (function () {
     init: async () => ({ cfg: await loadCfg(), data, editing: q.has('edit') }),
     on: (ch, fn) => { handlers[ch] = fn; },
     size: (w, h) => { document.title = `size ${w}x${h}`; },
+    mask: async () => null,
     hit: () => {}, menu: () => {}, dragStart: () => {}, dragEnd: () => {},
     save: (cfg) => console.log('save', JSON.stringify(cfg.rail)),
     edit: () => {},

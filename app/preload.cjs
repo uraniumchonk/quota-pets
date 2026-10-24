@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('host', {
   init: () => ipcRenderer.invoke('init'),
+  mask: (url) => ipcRenderer.invoke('mask', url),
   on: (ch, fn) => ipcRenderer.on(ch, (_e, v) => fn(v)),
   size: (w, h) => ipcRenderer.send('size', w, h),
   hit: (over) => ipcRenderer.send('hit', over),

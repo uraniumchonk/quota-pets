@@ -1,11 +1,12 @@
 # 額度小人（quota-pets）
 
-Windows 桌面最上層的一排 Q 版小人，趴在同一條欄位上，每隻舉著自己家族的額度牌。資料來自 meowhome 的 agentstat（`/api/quota` 每 60 秒、`/api/agents` 每 20 秒）。
+Windows 桌面最上層的一排 Q 版小人，每隻抱著一張白紙，紙上寫自己家族的額度。資料來自 meowhome 的 agentstat（`/api/quota` 每 60 秒、`/api/agents` 每 20 秒）。
 
 ## 啟動
 
 - 解壓 `quota-pets-win-x64.zip`，執行 `QuotaPets.exe`。不出現在工作列，系統匣有圖示。
 - 第一次啟動時把內建的 `pets` 資料夾複製到 `%APPDATA%\額度小人\pets`。之後改圖、改設定都改這一份；右鍵選單「開啟角色資料夾」直接打開。
+- 新版程式的 `config.json` 帶較大的 `bundleVersion` 時，舊的 `pets` 會改名成 `pets.bak-<時間>` 保留，再放入新版的。
 - 檔案一存，畫面約 0.3 秒內自動重載，不用重開程式。
 
 ## 操作
@@ -14,6 +15,7 @@ Windows 桌面最上層的一排 Q 版小人，趴在同一條欄位上，每隻
 |---|---|
 | 左鍵點小人 | 說一句話；睡著的小人醒來 10 秒並顯示額度 |
 | 拖小人 | 整排一起移動；放開時離「上方中間」或「左上角」48 px 內會吸附 |
+| 滑鼠在圖片透明處 | 點擊穿過去，點到後面的視窗 |
 | 右鍵（小人或系統匣） | 調整位置、鎖定位置、立即刷新、重新載入、開啟角色資料夾、開機自動啟動、結束 |
 
 ## 調整模式（右鍵 →「調整位置…」）
@@ -40,20 +42,19 @@ pets/
   characters/
     claude/
       character.json          這隻的設定
-      normal.png warning.png critical.png front.png sleep.gif sleep_front.png
+      normal.png              角色整張圖（含白紙）
     codex/ grok/ qwen/
 ```
 
-### 圖層
+目前的對應：claude＝橘髮、codex＝白龍、grok＝哥德雙馬尾、qwen＝紫髮。要換人就互換資料夾裡的 `normal.png`，再到調整模式重新對文字框。
 
-每隻角色由下到上四層：
+### 換圖
 
-1. `img`：角色本體（身體、頭、表情）。
-2. 欄位：所有角色共用，可在 `config.json` 的 `rail.ledge.img` 換成圖片。
-3. `front`：疊在欄位前面的部分（手、牌子）。不需要可以不給，整張圖都放 `img`。
-4. 文字框：程式畫的額度文字，位置由 `textBox` 決定。
+每個姿勢用一整張圖，換姿勢就是換整張。現在五個姿勢（normal、warning、critical、sleep、offline）都指向 `normal.png`；有新圖時放進資料夾，改 `poses` 裡那個姿勢的 `img` 即可，例如 `"critical": {"img": "cry.png"}`。新圖的紙位置不同時，在調整模式按 P 切到那個姿勢，按「切換專用／共用」給它自己的文字框再對位。
 
-圖片格式：png、gif、webp、apng 直接用；`.webm`、`.mp4` 會自動循環、靜音播放。
+圖片格式：png、gif、webp、apng 直接用；`.webm`、`.mp4` 會自動循環、靜音播放。同一隻的每張圖用同一個尺寸（`size`）。
+
+選用功能：姿勢可加 `front`（疊在欄位前的第二張圖），`config.json` 的 `rail.ledge.show` 設 true 會出現一條共用欄位；目前都沒用。
 
 ### character.json
 
@@ -85,7 +86,7 @@ pets/
 | `hours` | `[1, 7]` | 現在時間在 1 點到 7 點之間（可跨午夜，如 `[23, 7]`） |
 | `not`、`any` | `{"not":{"clickedWithinSec":10}}` | 反向、任一成立 |
 
-例：深夜改成睡覺 gif，不顯示額度：
+例：深夜改成睡覺姿勢：
 
 ```json
 { "if": { "hours": [1, 7] }, "pose": "sleep" }
@@ -101,6 +102,5 @@ pets/
 - 程式碼：`app/main.cjs`（視窗、拖動吸附、選單、讀 agentstat、存設定）、`app/renderer/js/` 下的 `quota.js`（整理資料）、`rules.js`（條件與姿勢）、`view.js`（圖層與牌子）、`editor.js`（調整模式）、`app.js`（串起來）。
 - 新條件：在 `rules.js` 的 `QP.conditions` 加一個 `(值, ctx) => true/false`。
 - 瀏覽器預覽：在 `app/` 開 http 伺服器，打開 `renderer/index.html`，可加 `?state=warning|critical|sleep`、`?edit=1`，用的是假資料。
-- 佔位圖：`python3 tools/make_placeholders.py app/pets/characters`。
 - Linux 開發：`npm install && npm start`。
 - Windows 打包：`tools/package_win.sh`，產生 `dist/quota-pets-win-x64.zip`。
