@@ -1,7 +1,8 @@
 # AGENTS.md
 
 Guide for coding agents working on quota-pets. Read this before changing anything. The user
-facing docs are `README.md` (English) and `README.zh-TW.md` (full field reference, Chinese).
+facing docs are `README.md` (English) and `README.zh-TW.md` (Traditional Chinese). Both carry the
+full field reference with the same sections; change them together.
 
 ## What it is
 
