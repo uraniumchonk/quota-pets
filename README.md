@@ -9,6 +9,10 @@ been idle for a while.
 
 ![quota-pets](docs/preview.png)
 
+On a real desktop, over Windows Terminal:
+
+![quota-pets on a desktop](docs/screenshot.png)
+
 ## Install
 
 1. Download `quota-pets-win-x64.zip` from Releases and unzip it anywhere.

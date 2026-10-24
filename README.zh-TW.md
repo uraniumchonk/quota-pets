@@ -2,6 +2,8 @@
 
 [English](README.md)
 
+![額度小人](docs/screenshot.png)
+
 Windows 桌面最上層的一排 Q 版小人，每隻抱著一張白紙，紙上寫自己家族（Claude、GPT／Codex、Grok、Qwen）的訂閱額度。
 
 ## 資料來源
