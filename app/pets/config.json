@@ -1,5 +1,5 @@
 {
-  "server": "http://meowhome.local:10026",
+  "server": "demo",
   "pollQuotaSec": 60,
   "pollAgentsSec": 20,
   "thresholds": {
@@ -39,7 +39,7 @@
     ],
     "showSec": 5
   },
-  "bundleVersion": 7,
+  "bundleVersion": 8,
   "bind": {
     "enabled": false,
     "mode": "foreground",

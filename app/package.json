@@ -1,8 +1,9 @@
 {
   "name": "quota-pets",
   "productName": "額度小人",
-  "version": "0.1.0",
-  "description": "Desktop quota pets reading agentstat",
+  "version": "0.8.0",
+  "description": "Desktop quota pets: chibi characters holding signs with your AI subscription quota",
   "main": "main.cjs",
-  "private": true
+  "private": true,
+  "license": "MIT"
 }

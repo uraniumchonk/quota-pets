@@ -126,6 +126,28 @@ function reload() {
   restartPolling();
 }
 
+// ---------- demo data (server: "demo"): cycles through calm / busy / empty / idle every 15 s ----------
+function demoData() {
+  const now = Date.now(), t = Math.floor(now / 15000) % 4;
+  const used = [[20, 35, 10, 5, 25, 15], [60, 80, 40, 30, 78, 60], [97, 99, 70, 50, 93, 100], [30, 45, 12, 8, 20, 40]][t];
+  const state = [['working', 'idle', 'working', 'working'], ['working', 'working', 'idle', 'working'],
+                 ['working', 'working', 'working', 'idle'], ['idle', 'sleeping', 'sleeping', 'idle']][t];
+  const age = s => (s === 'working' ? 5 : 4000);
+  const win = (id, u, h) => ({ id, used_pct: u, resets_at: now / 1000 + h * 3600 });
+  return {
+    quotaAt: now, agentsAt: now, error: null,
+    quota: {
+      claude: { ok: true, windows: [win('5h', used[0], 2.5), win('7d', used[1], 60)] },
+      claude2: { ok: true, windows: [win('5h', used[2], 4), win('7d', used[3], 100)] },
+      codex: { ok: true, windows: [win('7d', used[4], 90)] },
+      grok: { ok: true, windows: [win('7d', used[5], 50)] },
+    },
+    agents: [['cli:claude', 0], ['cli:codex', 1], ['cli:grok', 2], ['meowchat:coder', 3]].map(([id, i]) =>
+      ({ id, state: state[i], last_activity_age_sec: age(state[i]), doing: state[i] === 'working' ? 'demo task' : '' })),
+  };
+}
+const isDemo = () => !cfg.server || cfg.server === 'demo';
+
 // ---------- agentstat ----------
 async function getJson(url) {
   const ctl = new AbortController();
@@ -137,11 +159,13 @@ async function getJson(url) {
   } finally { clearTimeout(t); }
 }
 async function pollQuota() {
+  if (isDemo()) { Object.assign(data, demoData()); send('data', data); return; }
   try { const j = await getJson(cfg.server + '/api/quota'); data.quota = j.quota; data.quotaAt = Date.now(); data.error = null; }
   catch (e) { data.error = String(e.message || e); }
   send('data', data);
 }
 async function pollAgents() {
+  if (isDemo()) return;
   try { const j = await getJson(cfg.server + '/api/agents'); data.agents = j.agents; data.agentsAt = Date.now(); }
   catch (e) { data.error = String(e.message || e); }
   send('data', data);
@@ -149,7 +173,7 @@ async function pollAgents() {
 function restartPolling() {
   timers.forEach(clearInterval);
   pollQuota(); pollAgents();
-  timers = [setInterval(pollQuota, (cfg.pollQuotaSec || 60) * 1000), setInterval(pollAgents, (cfg.pollAgentsSec || 20) * 1000)];
+  timers = [setInterval(pollQuota, (isDemo() ? 5 : cfg.pollQuotaSec || 60) * 1000), setInterval(pollAgents, (cfg.pollAgentsSec || 20) * 1000)];
 }
 
 // ---------- window placement ----------
@@ -296,7 +320,7 @@ function menu() {
     { label: '綁定視窗', submenu: bindMenu() },
     { type: 'separator' },
     { label: '立即刷新額度', click: async () => {
-        try { await fetch(cfg.server + '/api/refresh', { method: 'POST' }); } catch {}
+        if (!isDemo()) try { await fetch(cfg.server + '/api/refresh', { method: 'POST' }); } catch {}
         setTimeout(pollQuota, 1500); pollAgents(); } },
     { label: '重新載入角色', click: reload },
     { label: '開啟角色資料夾', click: () => shell.openPath(PETS) },
