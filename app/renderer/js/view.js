@@ -59,7 +59,9 @@ QP.View = class {
       tb.appendChild(inner); front.appendChild(tb);
       const bubble = document.createElement('div'); bubble.className = 'bubble';
       this.root.append(back, front, bubble);
-      return { back, front, tb, inner, bubble, media: {}, html: '' };
+      const e = { back, front, tb, inner, bubble, media: {}, html: '' };
+      preload(e, ch, cfg.version);
+      return e;
     });
     this.placeAll();
   }
@@ -93,11 +95,20 @@ QP.View = class {
   }
 
   // pose: from QP.resolvePose; ctx: from QP.buildContext
+  // When the picture changes, the text box waits for the new picture, so the sign never sits on
+  // the old pose's paper (or an empty frame) for a frame.
   paint(i, pose, ctx) {
     const ch = this.cfg.chars[i], e = this.els[i];
-    setMedia(e, 'back', ch.base, pose.img, this.cfg.version);
-    setMedia(e, 'front', ch.base, pose.front, this.cfg.version);
+    const wait = [setMedia(e, 'back', ch.base, pose.img, this.cfg.version), setMedia(e, 'front', ch.base, pose.front, this.cfg.version)].filter(Boolean);
+    const seq = e.paintSeq = (e.paintSeq || 0) + 1;
+    if (!wait.length && !e.pending) { this.paintText(i, pose, ctx); return; }
+    if (wait.length) e.pending = Promise.all(wait);
+    // only the latest paint call draws the text once the pictures are up
+    e.pending.then(() => { if (e.paintSeq === seq) { e.pending = null; this.paintText(i, pose, ctx); } });
+  }
 
+  paintText(i, pose, ctx) {
+    const ch = this.cfg.chars[i], e = this.els[i];
     const t = pose.textBox, st = e.tb.style, k = this.lay.slots[i].s;
     st.left = t.x * k + 'px'; st.top = t.y * k + 'px'; st.width = t.w * k + 'px'; st.height = t.h * k + 'px';
     st.transform = `rotate(${t.rotate || 0}deg)`;
@@ -126,18 +137,53 @@ function frame(kind) {
   return f;
 }
 
+// Pose pictures stay in the frame once created; a pose change only switches which one is shown.
+// A new picture is shown only after it has decoded, and the old one stays up until then:
+// removing the old <img> first left the frame empty for the 20-50 ms a 2 MB PNG takes to
+// decode, which showed as a flicker whenever an agent switched between working and idle.
+// Returns a promise while the new picture is still loading or decoding, otherwise null.
 function setMedia(e, layer, base, file, ver) {
-  const host = e[layer];
-  if (e.media[layer] === file) return;
+  if (e.media[layer] === file) return null;
   e.media[layer] = file;
-  host.querySelectorAll('.media').forEach(n => n.remove());
-  if (e.urls) e.urls[layer] = null;
-  if (!file) return;
+  if (!file) { showMedia(e, layer, null); return null; }
+  const m = mediaEl(e, layer, base, file, ver);
+  // decode() again on every switch: Chromium may drop the decoded bitmap of a hidden picture,
+  // and showing it undecoded paints an empty frame first.
+  return m.wait
+    .then(() => (m.el.decode ? m.el.decode().catch(() => {}) : null))
+    .then(() => { if (e.media[layer] === file) showMedia(e, layer, m); });
+}
+
+function mediaEl(e, layer, base, file, ver) {
+  const cache = (e.cache = e.cache || { back: {}, front: {} })[layer];
+  if (cache[file]) return cache[file];
   const url = base + file + '?v=' + ver;
-  (e.urls = e.urls || {})[layer] = url;
-  const el = /\.(webm|mp4)$/i.test(file) ? Object.assign(document.createElement('video'), { autoplay: true, loop: true, muted: true, playsInline: true }) : document.createElement('img');
-  el.className = 'media'; el.src = url; el.draggable = false;
-  host.prepend(el);
+  const isVideo = /\.(webm|mp4)$/i.test(file);
+  const el = isVideo ? Object.assign(document.createElement('video'), { autoplay: true, loop: true, muted: true, playsInline: true }) : document.createElement('img');
+  el.className = 'media off'; el.draggable = false;
+  const m = { el, url, ready: false };
+  m.wait = (isVideo
+    ? new Promise(res => { el.addEventListener('loadeddata', res, { once: true }); el.addEventListener('error', res, { once: true }); })
+    : new Promise(res => { el.onload = () => (el.decode ? el.decode().catch(() => {}) : Promise.resolve()).then(res); el.onerror = res; })
+  ).then(() => { m.ready = true; });
+  el.src = url;
+  e[layer].prepend(el);
+  cache[file] = m;
+  return m;
+}
+
+function showMedia(e, layer, m) {
+  const cache = e.cache ? e.cache[layer] : {};
+  for (const x of Object.values(cache)) x.el.classList.toggle('off', x !== m);
+  (e.urls = e.urls || {})[layer] = m ? m.url : null;
+}
+
+// Load and decode every pose picture up front, so later pose changes swap instantly.
+function preload(e, ch, ver) {
+  for (const p of Object.values(ch.poses || {})) {
+    if (p && p.img) mediaEl(e, 'back', ch.base, p.img, ver);
+    if (p && p.front) mediaEl(e, 'front', ch.base, p.front, ver);
+  }
 }
 
 // display "used" (default): number and bar show the used share; "left": the remaining share
