@@ -62,6 +62,10 @@ app writes quota numbers onto that paper. Data comes from an HTTP server (`serve
   app moves the user's old folder to `pets.bak-<time>`, installs the new bundle and carries over
   the user's placement, zoom, binding, server and per-character offsets and text boxes
   (`carryOver` in `main.cjs`). Extend `carryOver` when you add a user-tunable field.
+- Pose pictures are cached per frame (`mediaEl` in `view.js`) and switched with the `off` class
+  after `decode()`; the sign text waits for the picture. Do not go back to removing the old
+  `<img>` and inserting a new one: a 2 MB PNG leaves the frame empty while it decodes, which shows
+  as a flicker on every agent state change.
 - PowerShell C# code in `winbind.cjs` must compile as C# 5 (Windows PowerShell 5.1): no string
   interpolation, no `?.`, no `out var`.
 
