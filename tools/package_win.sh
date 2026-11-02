@@ -16,6 +16,9 @@ cp -r app/main.cjs app/winbind.cjs app/i18n.json app/preload.cjs app/package.jso
 cp README.zh-TW.md "$OUT/說明.md"; cp README.md LICENSE ART-LICENSE.md AGENTS.md "$OUT/"
 if [ -f dist/rcedit-x64.exe ] && command -v wine >/dev/null; then
   cp app/icon.ico dist/icon.ico
+  # own prefix: a half-initialised ~/.wine fails with "could not load kernel32.dll"
+  export WINEPREFIX="${WINEPREFIX:-$PWD/dist/wineprefix}"
+  [ -f "$WINEPREFIX/system.reg" ] || WINEDEBUG=-all wineboot -i >/dev/null 2>&1 || true
   WINEDEBUG=-all wine dist/rcedit-x64.exe "$OUT/QuotaPets.exe" --set-icon dist/icon.ico \
     --set-version-string ProductName "QuotaPets" --set-version-string FileDescription "QuotaPets" >/dev/null 2>&1 || echo "rcedit failed, keeping default icon"
 fi
