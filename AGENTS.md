@@ -27,6 +27,7 @@ app writes quota numbers onto that paper. Data comes from an HTTP server (`serve
 | `app/renderer/js/mock-host.js` | Fake `window.host` for browser preview |
 | `app/pets/` | Bundled characters and config, copied to `%APPDATA%\額度小人\pets` on first run |
 | `docs/API.md` | The data server contract |
+| `docs/BACKEND-RECIPES.md` | Where the numbers come from: each provider's usage endpoint, credential file, headers, response fields, agent-state signals |
 | `tools/example_server.py` | Minimal data server (standard library) |
 | `tools/package_win.sh` | Builds `dist/quota-pets-win-x64.zip` from the official Electron Windows zip |
 
@@ -34,7 +35,7 @@ app writes quota numbers onto that paper. Data comes from an HTTP server (`serve
 
 1. Read `docs/API.md`. Two GET endpoints: `/api/quota` and `/api/agents` (optional).
 2. Start from `tools/example_server.py`. Replace `load()` with real readings: each provider's
-   official usage or billing endpoint, or numbers the user enters. It listens on 127.0.0.1; a
+   official usage or billing endpoint (recipes in `docs/BACKEND-RECIPES.md`), or numbers the user enters. It listens on 127.0.0.1; a
    second argument sets the host (`0.0.0.0` serves other machines, without authentication).
 3. Keys must line up with the characters: `quota.<provider>` matches `quota[].provider` in a
    `character.json`, `windows[].id` matches `quota[].window`, `agents[].id` matches `agent`.
