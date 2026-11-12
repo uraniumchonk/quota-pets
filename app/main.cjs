@@ -60,7 +60,7 @@ function carryOver(bak) {
   const oldTop = readJson(path.join(bak, 'config.json'));
   const top = readJson(path.join(PETS, 'config.json'));
   for (const k of ['anchor', 'x', 'y', 'display', 'shiftY', 'gap', 'scale', 'zoom', 'locked']) if (oldTop.rail && k in oldTop.rail) top.rail[k] = oldTop.rail[k];
-  for (const k of ['bind', 'display', 'server', 'lang']) {
+  for (const k of ['bind', 'display', 'server', 'lang', 'showQuotaEmptyPose']) {
     if (k === 'bind' && (oldTop.bundleVersion || 1) < 5) continue;   // v4 shipped an example binding
     if (k in oldTop) top[k] = oldTop[k];
   }
@@ -330,6 +330,8 @@ function menu() {
   return Menu.buildFromTemplate([
     { label: t(editing ? 'menu.endAdjust' : 'menu.adjust'), click: () => setEditing(!editing) },
     { label: t('menu.lock'), type: 'checkbox', checked: !!cfg.rail.locked, click: (m) => { cfg.rail.locked = m.checked; saveConfig(cfg); send('config', cfg); } },
+    { label: t('menu.quotaEmptyPose'), type: 'checkbox', checked: cfg.showQuotaEmptyPose !== false,
+      click: (m) => { cfg.showQuotaEmptyPose = m.checked; saveConfig(cfg); send('config', cfg); } },
     { label: t('menu.size'), submenu: [50, 60, 70, 80, 90, 100, 120, 150].map(p => ({ label: p + '%', type: 'radio',
         checked: Math.round((cfg.rail.zoom || 1) * 100) === p, click: () => send('zoom', p / 100) })) },
     { label: t('menu.bind'), submenu: bindMenu() },

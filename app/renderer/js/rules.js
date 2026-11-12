@@ -25,8 +25,12 @@ QP.matches = function (cond, ctx) {
   return true;
 };
 
-QP.pickPose = function (ch, ctx) {
-  for (const r of ch.rules || []) if (QP.matches(r.if, ctx)) return r.pose;
+QP.pickPose = function (ch, ctx, cfg) {
+  const hideEmpty = cfg && cfg.showQuotaEmptyPose === false;   // crying face off: fall through to the next rule
+  for (const r of ch.rules || []) {
+    if (hideEmpty && r.pose === 'critical') continue;
+    if (QP.matches(r.if, ctx)) return r.pose;
+  }
   return 'normal';
 };
 

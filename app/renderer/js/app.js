@@ -49,7 +49,7 @@ class App {
 
   poseOf(i) {
     if (this.forcePose[i]) return this.forcePose[i];
-    return QP.pickPose(this.cfg.chars[i], this.ctxOf(i));
+    return QP.pickPose(this.cfg.chars[i], this.ctxOf(i), this.cfg);
   }
 
   ctxOf(i) {
@@ -62,7 +62,7 @@ class App {
     if (!this.cfg) return;
     this.cfg.chars.forEach((ch, i) => {
       const ctx = this.ctxOf(i);
-      const name = this.forcePose[i] || QP.pickPose(ch, ctx);
+      const name = this.forcePose[i] || QP.pickPose(ch, ctx, this.cfg);
       this.view.paint(i, QP.resolvePose(ch, name), ctx);
       this.view.els[i].lastPose = name;
     });

@@ -39,7 +39,8 @@
     ],
     "showSec": 5
   },
-  "bundleVersion": 9,
+  "bundleVersion": 10,
+  "showQuotaEmptyPose": true,
   "bind": {
     "enabled": false,
     "mode": "foreground",

@@ -80,12 +80,21 @@ pose and keeps showing the last known numbers.
 | Click a character | It says a line; an idle one wakes up for 10 s and shows its quota |
 | Drag a character | Moves the whole row; snaps to the top center or top left within 48 px. The position starts locked: untick "Lock position" in the right-click menu first |
 | Ctrl + mouse wheel on a character | Zooms the whole row in 5 % steps (menu "Size" has 50–150 % presets) |
-| Right-click a character or the tray icon | Adjust, lock position, size, window binding, language, refresh, reload, open folder, start at login, developer tools, quit |
+| Right-click a character or the tray icon | Adjust, lock position, show crying face, size, window binding, language, refresh, reload, open folder, start at login, developer tools, quit |
 
 ### Language
 
 Right-click → "Language": System (default; Chinese systems get Traditional Chinese, all others
 English), 繁體中文 or English. Stored as `lang` in `config.json` (`auto` / `zh-TW` / `en`).
+
+### Quota empty pose
+
+When any row on a character's sign reaches the critical threshold, the character switches to its
+crying face. Right-click → "Show the crying face when quota runs out" (on by default) toggles it
+off: the character then keeps its usual working / warning / resting poses while the numbers and
+warning colors stay unchanged. The choice is saved as `showQuotaEmptyPose` in `config.json`
+(missing means on) and applies to all four characters. You can still manually preview the crying
+face in adjust mode.
 
 ### Window binding (optional, right-click → "Window binding")
 
@@ -232,6 +241,7 @@ Interface strings live in `app/i18n.json`; a new language is one more block with
 | `characters` | Character folders, left to right |
 | `display` | `used` (default): numbers and bars show used %; `left`: remaining % |
 | `lang` | `auto`, `zh-TW` or `en` |
+| `showQuotaEmptyPose` | `true` (default): show the crying face when a quota hits critical; `false`: skip that pose and keep the working / warning / resting rules. Toggled in the right-click menu; missing means `true` |
 | `rail` | Row placement: `anchor` (`top-center`, `top-left` or `free`), `x`, `y`, `shiftY`, `gap`, `scale`, `zoom`, `locked`, `ledge` |
 | `bubble` | Random chatter: `enabled`, `autoSec` (seconds between lines, min and max), `showSec` |
 | `bind` | Window binding, see above |
@@ -241,9 +251,9 @@ Interface strings live in `app/i18n.json`; a new language is one more block with
 
 When a new build carries a higher `bundleVersion`, the old folder is renamed `pets.bak-<time>`, the
 new characters and pictures are installed, and your tuning is carried over: placement, row size and
-gap, zoom, lock, binding, server, language and used / left display, plus each character's
-position, size and text boxes. A text box is carried over only while its pose still uses the same
-picture file name.
+gap, zoom, lock, binding, server, language, used / left display, the quota empty pose switch, plus
+each character's position, size and text boxes. A text box is carried over only while its pose
+still uses the same picture file name.
 
 ## Privacy
 
