@@ -67,6 +67,11 @@ app writes quota numbers onto that paper. Data comes from an HTTP server (`serve
   after `decode()`; the sign text waits for the picture. Do not go back to removing the old
   `<img>` and inserting a new one: a 2 MB PNG leaves the frame empty while it decodes, which shows
   as a flicker on every agent state change.
+- Window binding hides the strip by blanking the page (main sends `shown`, the renderer sets
+  `body.qp-hidden`) while the native window stays shown and click-through. Do not hide it with
+  `win.hide()` / `win.showInactive()`: those ran on every foreground change, while Windows was
+  activating the bound window, and on Windows 10 they flashed the screen and left Windows Terminal
+  without keyboard focus (IME icon ⊗) until the user clicked the taskbar and then the window.
 - PowerShell C# code in `winbind.cjs` must compile as C# 5 (Windows PowerShell 5.1): no string
   interpolation, no `?.`, no `out var`.
 

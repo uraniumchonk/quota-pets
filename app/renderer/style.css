@@ -6,6 +6,7 @@
 }
 html, body { margin: 0; background: transparent; overflow: hidden; user-select: none; font-family: var(--font); }
 #rail { position: relative; }
+body.qp-hidden { visibility: hidden; }   /* window binding: page blanked, native window stays shown */
 
 .frame { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
 .frame.back { z-index: 1; }

@@ -12,8 +12,10 @@ class App {
   }
 
   async boot() {
-    const { cfg, data, editing } = await host.init();
+    const { cfg, data, editing, shown } = await host.init();
     this.setConfig(cfg); this.data = data || {};
+    this.setShown(shown !== false);
+    host.on('shown', on => this.setShown(on));
     host.on('config', c => this.setConfig(c));
     host.on('data', d => { this.data = d; this.tick(); });
     host.on('toast', text => { const i = this.cfg.chars.length ? 0 : -1; if (i >= 0) this.view.say(i, text, 3); });
@@ -143,13 +145,22 @@ class App {
     this.view.say(0, QP.t('zoom', { n: Math.round(this.cfg.rail.zoom * 100) }), 1.5);
   }
 
+  // Window binding hides the strip by blanking the page; the native window stays up and main
+  // keeps it click-through while hidden. Reset the hover state so the next mouse move re-reports it.
+  setShown(on) {
+    this.hidden = !on;
+    this.over = false;
+    document.body.classList.toggle('qp-hidden', !on);
+  }
+
   bindPointer() {
-    let over = false, down = null;
+    let down = null;
+    this.over = false;
     document.addEventListener('mousemove', e => {
-      const hit = !!this.hitAt(e.clientX, e.clientY);
-      if (hit !== over) { over = hit; host.hit(hit); }
+      const hit = !this.hidden && !!this.hitAt(e.clientX, e.clientY);
+      if (hit !== this.over) { this.over = hit; host.hit(hit); }
     });
-    document.addEventListener('mouseleave', () => { over = false; host.hit(false); });
+    document.addEventListener('mouseleave', () => { this.over = false; host.hit(false); });
     document.addEventListener('contextmenu', e => { e.preventDefault(); host.menu(); });
 
     document.addEventListener('pointerdown', e => {

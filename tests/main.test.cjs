@@ -17,13 +17,15 @@ function makeElectronStub(userData) {
   const handlers = {};
   const trayHandlers = {};
   let menuTemplate = null;
+  const calls = [];               // native window operations, in order
   const win = {
     isDestroyed: () => false,
     webContents: { send: (ch, v) => sent.push([ch, v]), openDevTools() {} },
-    setAlwaysOnTop() {}, setVisibleOnAllWorkspaces() {}, loadFile() {},
-    once() {}, setIgnoreMouseEvents() {}, setBounds() {},
+    setAlwaysOnTop: () => calls.push(['setAlwaysOnTop']), setVisibleOnAllWorkspaces() {}, loadFile() {},
+    once() {}, setIgnoreMouseEvents: (ignore) => calls.push(['setIgnoreMouseEvents', ignore]), setBounds() {},
     getSize: () => [600, 300], getPosition: () => [0, 0],
-    showInactive() {}, focus() {},
+    showInactive: () => calls.push(['showInactive']), hide: () => calls.push(['hide']),
+    show: () => calls.push(['show']), focus: () => calls.push(['focus']),
   };
   const display = { id: 1, bounds: { x: 0, y: 0, width: 1920, height: 1080 } };
   const electron = {
@@ -56,11 +58,13 @@ function makeElectronStub(userData) {
     },
     globalShortcut: { unregisterAll() {}, register: () => true },
   };
-  return { electron, sent, handlers, trayHandlers, getMenuTemplate: () => menuTemplate };
+  return { electron, sent, calls, handlers, trayHandlers, getMenuTemplate: () => menuTemplate };
 }
 
 // Boot the real main.cjs against a throwaway userData dir.
-async function bootMain(userData) {
+// opts.shouldShow: what the fake window binder answers (default null = no data yet);
+// stub.onBind() runs main's binder callback, as a foreground change on Windows would.
+async function bootMain(userData, opts = {}) {
   const stub = makeElectronStub(userData);
   const realFs = require('fs');
   const fsStub = Object.create(realFs);
@@ -78,8 +82,8 @@ async function bootMain(userData) {
       if (name === 'fs') return fsStub;
       if (name.endsWith('winbind.cjs')) return {
         WinBind: class {
-          constructor() {} start() {} stop() {}
-          shouldShow() { return null; } windows() { return []; } programs() { return []; }
+          constructor(_dir, onChange) { stub.onBind = onChange; } start() {} stop() {}
+          shouldShow() { return opts.shouldShow ? opts.shouldShow() : null; } windows() { return []; } programs() { return []; }
           isOpen() { return true; }
         },
       };
@@ -166,4 +170,35 @@ test('bundle upgrade carryOver: keeps a saved false and other tuning', async () 
   assert.equal(cfg.bundleVersion, 10);
   assert.equal(cfg.showQuotaEmptyPose, false, 'user setting carried over');
   assert.equal(cfg.rail.x, 42, 'other tuning carried over');
+});
+
+test('window binding: hiding blanks the page and never hides or reshows the native window', async () => {
+  const dir = tmpDir();
+  let want = true;
+  const stub = await bootMain(dir, { shouldShow: () => want });
+  assert.equal(stub.handlers.init().shown, true);
+
+  // the bound window leaves the foreground: after hideDelaySec the page is blanked
+  want = false;
+  stub.onBind();
+  await new Promise(r => setTimeout(r, 300));
+  assert.deepEqual(stub.sent.filter(([ch]) => ch === 'shown').pop(), ['shown', false]);
+  assert.deepEqual(stub.calls.filter(([op]) => op === 'setIgnoreMouseEvents').pop(), ['setIgnoreMouseEvents', true],
+    'hidden strip is click-through');
+  assert.equal(stub.handlers.init().shown, false);
+
+  // while hidden, hovering where a character would be must not make the window catch clicks
+  stub.handlers.hit({}, true);
+  assert.deepEqual(stub.calls.filter(([op]) => op === 'setIgnoreMouseEvents').pop(), ['setIgnoreMouseEvents', true]);
+
+  // the bound window comes back to the front
+  want = true;
+  stub.onBind();
+  assert.deepEqual(stub.sent.filter(([ch]) => ch === 'shown').pop(), ['shown', true]);
+  stub.handlers.hit({}, true);
+  assert.deepEqual(stub.calls.filter(([op]) => op === 'setIgnoreMouseEvents').pop(), ['setIgnoreMouseEvents', false]);
+
+  const native = stub.calls.filter(([op]) => ['hide', 'show', 'showInactive', 'setAlwaysOnTop', 'focus'].includes(op));
+  assert.deepEqual(native.filter(([op]) => op !== 'setAlwaysOnTop'), [], 'no native hide/show/focus on foreground changes');
+  assert.equal(native.length, 1, 'setAlwaysOnTop only once, at window creation');
 });

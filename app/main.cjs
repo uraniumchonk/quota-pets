@@ -242,15 +242,26 @@ function dragEnd() {
 }
 
 // ---------- window binding: show only while a chosen window is in front / open ----------
+// The native window stays shown from start to quit. Hiding only blanks the page (renderer
+// event 'shown') and makes the window click-through. Do not go back to win.hide() /
+// win.showInactive() here: they ran on every foreground change, right while Windows was
+// activating the bound window, and on Windows 10 that flashed the screen and left the
+// activated window (Windows Terminal) without keyboard focus, IME icon showing ⊗ (2026-11-13).
+function setShown(on) {
+  shown = on;
+  if (!on && !editing) win.setIgnoreMouseEvents(true, { forward: true });
+  send('shown', on);
+}
+
 function applyVisibility() {
   if (!win || win.isDestroyed()) return;
   const want = editing ? true : binder.shouldShow(cfg.bind);
   if (want === null) return;
   if (want) {
     clearTimeout(hideTimer); hideTimer = null;
-    if (!shown) { shown = true; win.showInactive(); win.setAlwaysOnTop(true, 'screen-saver'); }
+    if (!shown) setShown(true);
   } else if (shown && !hideTimer) {
-    hideTimer = setTimeout(() => { hideTimer = null; shown = false; win.hide(); }, ((cfg.bind && cfg.bind.hideDelaySec) ?? 0.2) * 1000);
+    hideTimer = setTimeout(() => { hideTimer = null; setShown(false); }, ((cfg.bind && cfg.bind.hideDelaySec) ?? 0.2) * 1000);
   }
 }
 
@@ -382,10 +393,10 @@ app.whenReady().then(() => {
   tray.on('click', () => tray.popUpContextMenu(menu()));
   tray.on('right-click', () => tray.popUpContextMenu(menu()));
 
-  ipcMain.handle('init', () => ({ cfg, data, editing }));
+  ipcMain.handle('init', () => ({ cfg, data, editing, shown }));
   ipcMain.handle('mask', (_e, url) => { try { return alphaMask(url); } catch { return null; } });
   ipcMain.on('size', (_e, w, h) => place([Math.ceil(w), Math.ceil(h)]));
-  ipcMain.on('hit', (_e, over) => { if (!editing) win.setIgnoreMouseEvents(!over, { forward: true }); });
+  ipcMain.on('hit', (_e, over) => { if (!editing) win.setIgnoreMouseEvents(!(over && shown), { forward: true }); });
   ipcMain.on('menu', () => menu().popup({ window: win }));
   ipcMain.on('drag-start', (_e, cx, cy) => {
     if (cfg.rail.locked || editing) return;

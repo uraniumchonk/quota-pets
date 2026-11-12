@@ -105,3 +105,26 @@ test('tick: ctx numbers and severity are unchanged by the switch', () => {
     assert.equal(a.severity, b.severity);
   }
 });
+
+test('setShown / bindPointer: a blanked strip never reports a hover hit, and showing again re-reports it', () => {
+  const { sandbox, App } = bootApp();
+  const listeners = {};
+  const classes = new Set();
+  sandbox.document.addEventListener = (ev, fn) => { listeners[ev] = fn; };
+  sandbox.document.body = { classList: { toggle: (c, on) => (on ? classes.add(c) : classes.delete(c)) } };
+  const hits = [];
+  sandbox.host = { hit: v => hits.push(v), menu() {}, dragStart() {}, dragEnd() {} };
+  const app = new App();
+  app.hitAt = () => ({ i: 0, part: 'frame' });          // the pointer is over a character
+  app.bindPointer();
+
+  app.setShown(false);
+  assert.ok(classes.has('qp-hidden'));
+  listeners.mousemove({ clientX: 5, clientY: 5 });
+  assert.deepEqual(hits, [], 'no hit while hidden');
+
+  app.setShown(true);
+  assert.ok(!classes.has('qp-hidden'));
+  listeners.mousemove({ clientX: 5, clientY: 5 });
+  assert.deepEqual(hits, [true], 'hover is reported again after showing');
+});
